@@ -70,7 +70,6 @@ const DisabilityInfoPage: React.FC = () => {
           type="date"
           value={diagnosisDate}
           onChange={(value: string) => setDiagnosisDate(value)}
-          placeholder="yyyy-mm-dd"
           errorMessage={errors.diagnosisDate}
           isRequired
         />
