@@ -1,68 +1,103 @@
+* {
+  box-sizing: border-box;
+}
+
 :root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
+  font-family: 'BCSans', 'Noto Sans', Verdana, Arial, sans-serif;
+  line-height: 1.6;
   font-weight: 400;
+  color: #313132;
+  background-color: #ffffff !important;
+}
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+html,
+body,
+#root {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  background-color: #ffffff !important;
+  color: #313132;
+  width: 100%;
 }
 
 a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
+  color: #1a5a96;
+  text-decoration: none;
 }
+
 a:hover {
-  color: #535bf2;
+  text-decoration: underline;
 }
 
-body {
-  margin: 0;
+h1, h2, h3, h4, h5, h6 {
+  color: #313132;
+  margin-top: 0;
+}
+
+[data-react-aria-field] {
+  margin-bottom: 1.5rem;
+}
+
+[role="radiogroup"] {
   display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin: 1rem 0;
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+[class*="Callout"] {
+  margin: 1.5rem 0;
+  padding: 1.25rem 1.5rem;
+  border-radius: 4px;
+  line-height: 1.6;
 }
 
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
+[class*="Callout"] h2,
+[class*="Callout"] h3 {
+  margin-top: 0;
+  margin-bottom: 0.75rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+[class*="Callout"] p {
+  margin: 0.5rem 0;
+}
+
+[class*="Callout"] p:first-child {
+  margin-top: 0;
+}
+
+[class*="Callout"] p:last-child {
+  margin-bottom: 0;
+}
+
+[class*="Callout"] ul {
+  margin: 0.5rem 0;
+  padding-left: 1.5rem;
+}
+
+[class*="Callout"] li {
+  margin: 0.25rem 0;
+}
+
+[role="radio"] {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem;
   cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+  transition: background-color 0.2s;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
+[role="radio"]:hover {
+  background-color: #f9f9f9;
+}
+
+button + button {
+  margin-left: 0;
+}
+
+textarea {
+  min-height: 120px;
 }
