@@ -1,0 +1,19 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: efv-ui
+  labels:
+    app: efv-ui
+    app.kubernetes.io/name: efv-ui
+    app.kubernetes.io/component: frontend
+spec:
+  to:
+    kind: Service
+    name: efv-ui
+    weight: 100
+  port:
+    targetPort: http
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+  wildcardPolicy: None
