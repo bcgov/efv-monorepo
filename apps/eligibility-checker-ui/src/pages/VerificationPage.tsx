@@ -10,7 +10,6 @@ const VerificationPage: React.FC = () => {
   const navigate = useNavigate();
   const { state, updateVerification, setTracking } = useApplication();
 
-  const [status, setStatus] = useState<string>('pending');
   const [message, setMessage] = useState<string>('Initializing verification...');
   const [progress, setProgress] = useState<number>(0);
   const [error, setError] = useState<string>('');
@@ -49,7 +48,6 @@ const VerificationPage: React.FC = () => {
 
         // Poll for verification results
         const onProgress = (statusData: VerificationStatusResponse) => {
-          setStatus(statusData.status);
           setProgress(statusData.progress || 0);
 
           // Update status messages based on progress
@@ -81,11 +79,9 @@ const VerificationPage: React.FC = () => {
           }, 1500);
         } else {
           setError(verificationResponse.error || 'Verification failed');
-          setStatus('failed');
         }
       } catch (err) {
         console.error('Verification error:', err);
-        setStatus('error');
         setError('An error occurred during verification. Please try again.');
       }
     };

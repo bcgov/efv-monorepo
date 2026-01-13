@@ -5,7 +5,6 @@ const Header = () => {
   return (
     <BCHeader
       title="Electronic Factor Verification"
-      homeHref="/"
     />
   );
 };
