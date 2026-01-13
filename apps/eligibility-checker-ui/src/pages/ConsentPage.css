@@ -1,0 +1,189 @@
+.consent-page {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+  box-sizing: border-box;
+}
+
+.consent-page h1 {
+  font-size: 2rem;
+  margin-bottom: 2rem;
+  color: #313132;
+  font-weight: 700;
+}
+
+.page-description {
+  display: none;
+}
+
+.form-container {
+  background: white;
+  padding: 0;
+  border-radius: 0;
+  border: none;
+}
+
+.consent-section {
+  margin-bottom: 2rem;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.consent-section:last-of-type {
+  border-bottom: none;
+  margin-bottom: 2rem;
+}
+
+.consent-section h2 {
+  font-size: 1.25rem;
+  margin-bottom: 1.5rem;
+  color: #313132;
+  font-weight: 600;
+}
+
+.consent-text-box {
+  background: #f9f9f9;
+  border: 2px solid #e0e0e0;
+  border-radius: 0;
+  padding: 1.5rem;
+  max-height: 300px;
+  overflow-y: auto;
+  margin-bottom: 2rem;
+}
+
+.consent-text {
+  white-space: pre-line;
+  line-height: 1.7;
+  color: #313132;
+  font-size: 0.95rem;
+}
+
+.checkbox-group {
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: #f9f9f9;
+  border-radius: 0;
+  border: 1px solid #d9d9d9;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  cursor: pointer;
+}
+
+.checkbox-label input[type="checkbox"] {
+  margin-top: 0.25rem;
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+.checkbox-label span {
+  flex: 1;
+  color: #313132;
+  line-height: 1.6;
+}
+
+.consent-checkbox {
+  margin-bottom: 2rem;
+}
+
+.signature-section {
+  display: flex;
+  flex-direction: row;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.signature-section > * {
+  flex: 1;
+}
+
+@media (max-width: 768px) {
+  .signature-section {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+}
+
+.signature-instruction {
+  color: #606060;
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #313132;
+  font-size: 0.95rem;
+}
+
+.required {
+  color: #d32f2f;
+}
+
+.form-group input {
+  padding: 0.75rem;
+  border: 2px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #1a5a96;
+}
+
+.form-group input.disabled {
+  background: #f5f5f5;
+  cursor: not-allowed;
+}
+
+.help-text {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  color: #606060;
+}
+
+.signature-details {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: #f9f9f9;
+  border-radius: 4px;
+}
+
+.signature-details p {
+  margin: 0.5rem 0;
+  color: #606060;
+  font-size: 0.95rem;
+}
+
+.error-callout {
+  margin-bottom: 1.5rem;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-start;
+  gap: 1rem;
+  padding-top: 2.5rem;
+  margin-top: 2rem;
+  border-top: 2px solid #e0e0e0;
+}
+
+@media (max-width: 768px) {
+  .form-actions {
+    flex-direction: column;
+  }
+}
