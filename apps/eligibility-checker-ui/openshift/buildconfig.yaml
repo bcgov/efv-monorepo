@@ -1,0 +1,29 @@
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: efv-ui
+  labels:
+    app: efv-ui
+    app.kubernetes.io/name: efv-ui
+    app.kubernetes.io/component: frontend
+spec:
+  output:
+    to:
+      kind: ImageStreamTag
+      name: efv-ui:latest
+  source:
+    type: Git
+    git:
+      uri: https://github.com/bcgov/efv-monorepo.git
+      ref: main
+    contextDir: apps/eligibility-checker-ui
+  strategy:
+    type: Docker
+    dockerStrategy:
+      dockerfilePath: Dockerfile
+  triggers:
+  - type: ConfigChange
+  - type: GitHub
+    github:
+      secret: <github-webhook-secret>
+  - type: ImageChange
