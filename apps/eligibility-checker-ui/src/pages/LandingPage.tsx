@@ -14,6 +14,14 @@ const LandingPage = () => {
 
   return (
     <div className="landing-page">
+      <Callout variant="lightGold">
+        <p>
+          <strong>Prototype Demonstration:</strong> This is a technical demonstration of Electronic Factor Verification (EFV) capabilities. 
+          This prototype illustrates potential future workflows and is not a proposed production system. 
+          It is designed to communicate technical possibilities to stakeholders and does not represent final user interfaces or processes.
+        </p>
+      </Callout>
+
       <div className="hero-section">
         <h1>Electronic Factor Verification (EFV)</h1>
         <p className="subtitle">

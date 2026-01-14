@@ -81,8 +81,8 @@ const PersonalInfoPage: React.FC = () => {
       {user && (
         <Callout variant="lightBlue">
           <p>
-            Your personal information has been securely retrieved from your BC Services Card. 
-            You can review and edit any fields as needed.
+            <strong>Prototype Note:</strong> Your personal information has been securely retrieved from your BC Services Card. 
+            You can review and edit any fields as needed. (This demonstrates automated data pre-population capabilities.)
           </p>
         </Callout>
       )}

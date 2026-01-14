@@ -43,8 +43,9 @@ const LoginPage = () => {
 
       <Callout variant="lightBlue">
         <p>
-          <strong>Prototype:</strong> This is a demonstration. In production, users would authenticate with their actual BC Services Card.
-          For this demo, you can sign in as Amina to experience the application workflow.
+          <strong>Prototype Demo:</strong> This is a demonstration of potential EFV workflows. 
+          In a production environment, users would authenticate with their actual BC Services Card.
+          For this prototype, you can sign in as Amina to explore the example application workflow.
         </p>
       </Callout>
 

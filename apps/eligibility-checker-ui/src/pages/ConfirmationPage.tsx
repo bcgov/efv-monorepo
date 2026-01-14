@@ -25,6 +25,13 @@ const ConfirmationPage = () => {
 
   return (
     <div className="confirmation-page">
+      <Callout variant="lightGold">
+        <p>
+          <strong>Prototype Demonstration:</strong> This confirmation represents a simulated successful application submission. 
+          In a production environment, this would integrate with actual case management systems.
+        </p>
+      </Callout>
+
       <div className="success-icon">✓</div>
       <h1>Application Successfully Submitted!</h1>
       <p className="page-description">
