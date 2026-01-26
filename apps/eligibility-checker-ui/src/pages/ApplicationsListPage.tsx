@@ -64,18 +64,6 @@ const ApplicationsListPage: React.FC = () => {
     }
   ]);
 
-  const getStatusBadge = (status: Application['status']) => {
-    const statusConfig = {
-      'pending': { className: 'status-pending', label: 'Pending' },
-      'in-review': { className: 'status-in-review', label: 'In Review' },
-      'verified': { className: 'status-verified', label: 'Verified' },
-      'requires-action': { className: 'status-requires-action', label: 'Requires Action' }
-    };
-    
-    const config = statusConfig[status];
-    return <span className={`status-badge ${config.className}`}>{config.label}</span>;
-  };
-
   const handleReviewApplication = (applicationId: string) => {
     // Navigate to case worker dashboard for this specific application
     navigate('/caseworker', { state: { applicationId } });
