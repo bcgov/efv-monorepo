@@ -1,0 +1,260 @@
+.applications-list-page {
+  min-height: 100vh;
+  background: #F5F5F5;
+}
+
+.page-header {
+  background: white;
+  border-bottom: 2px solid #E5E5E5;
+  padding: 1.5rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.page-header h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #003366;
+  margin: 0 0 0.25rem 0;
+}
+
+.page-header p {
+  font-size: 0.9375rem;
+  color: #606060;
+  margin: 0;
+}
+
+.applications-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.filters-section {
+  margin-bottom: 2rem;
+}
+
+.filter-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.stat-item {
+  background: white;
+  padding: 1.25rem;
+  border-radius: 8px;
+  border: 1px solid #E5E5E5;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #003366;
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  color: #606060;
+  font-weight: 500;
+}
+
+.applications-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  background: white;
+  border: 1px solid #E5E5E5;
+  border-radius: 4px;
+}
+
+.application-card {
+  background: white;
+  border-bottom: 1px solid #E5E5E5;
+  padding: 1.5rem;
+  transition: background 0.2s;
+}
+
+.application-card:last-child {
+  border-bottom: none;
+}
+
+.application-card:hover {
+  background: #F8F8F8;
+}
+
+.application-card.requires-action {
+  border-left: 3px solid #D32F2F;
+}
+
+.application-card.in-review {
+  border-left: 3px solid #1976D2;
+}
+
+.application-card.verified {
+  border-left: 3px solid #388E3C;
+}
+
+.application-card.pending {
+  border-left: 3px solid #F57C00;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.card-header h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #313132;
+  margin: 0;
+}
+
+.application-id {
+  font-size: 0.8125rem;
+  color: #606060;
+  margin: 0.25rem 0 0 0;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.625rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 3px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-pending {
+  background: #F5F5F5;
+  color: #606060;
+  border: 1px solid #D4D4D4;
+}
+
+.status-in-review {
+  background: #F5F5F5;
+  color: #606060;
+  border: 1px solid #D4D4D4;
+}
+
+.status-verified {
+  background: #F5F5F5;
+  color: #606060;
+  border: 1px solid #D4D4D4;
+}
+
+.status-requires-action {
+  background: #F5F5F5;
+  color: #606060;
+  border: 1px solid #D4D4D4;
+}
+
+.card-details {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.detail-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.detail-label {
+  font-size: 0.875rem;
+  color: #606060;
+  font-weight: 500;
+}
+
+.detail-value {
+  font-size: 0.9375rem;
+  color: #313132;
+  font-weight: 600;
+}
+
+.verification-progress {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.progress-header {
+  display: none;
+}
+
+.progress-label {
+  font-size: 0.875rem;
+  color: #606060;
+  font-weight: 500;
+  min-width: 140px;
+}
+
+.progress-value {
+  font-size: 0.875rem;
+  color: #313132;
+  font-weight: 600;
+  min-width: 40px;
+  text-align: right;
+}
+
+.progress-bar {
+  height: 6px;
+  background: #E5E5E5;
+  border-radius: 3px;
+  overflow: hidden;
+  flex: 1;
+  max-width: 200px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: #003366;
+  transition: width 0.3s ease;
+}
+
+.progress-text {
+  font-size: 0.8125rem;
+  color: #606060;
+  margin: 0;
+}
+
+.review-button {
+  align-self: flex-start;
+}
+
+@media (max-width: 768px) {
+  .filter-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .card-details {
+    gap: 1rem;
+  }
+
+  .verification-progress {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .progress-bar {
+    max-width: 100%;
+    width: 100%;
+  }
+}

@@ -37,7 +37,7 @@ const LoginPage = () => {
     <div className="login-page">
       <h1>Sign in</h1>
       <p className="description">
-        To access the Electronic Factor Verification service, you need to authenticate your identity
+        To access the Eligibilty Factor Verification service, you need to authenticate your identity
         using your BC Services Card.
       </p>
 

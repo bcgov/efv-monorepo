@@ -16,14 +16,14 @@ const LandingPage = () => {
     <div className="landing-page">
       <Callout variant="lightGold">
         <p>
-          <strong>Prototype Demonstration:</strong> This is a technical demonstration of Electronic Factor Verification (EFV) capabilities. 
+          <strong>Prototype Demonstration:</strong> This is a technical demonstration of Eligibilty Factor Verification (EFV) capabilities. 
           This prototype illustrates potential future workflows and is not a proposed production system. 
           It is designed to communicate technical possibilities to stakeholders and does not represent final user interfaces or processes.
         </p>
       </Callout>
 
       <div className="hero-section">
-        <h1>Electronic Factor Verification (EFV)</h1>
+        <h1>Eligibilty Factor Verification (EFV)</h1>
         <p className="subtitle">
           Streamlined access to disability benefits with automated income verification
         </p>
@@ -33,7 +33,7 @@ const LandingPage = () => {
         <h2>What is EFV?</h2>
         <Callout variant="lightBlue">
           <p>
-            The Electronic Factor Verification service helps you apply for disability benefits by
+            The Eligibilty Factor Verification service helps you apply for disability benefits by
             securely accessing your income information directly from the Canada Revenue Agency (CRA).
             This means you don't need to manually gather and submit income documents.
           </p>

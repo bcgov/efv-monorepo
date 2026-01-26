@@ -12,6 +12,7 @@ import VerificationPage from './pages/VerificationPage'
 import ResultsPage from './pages/ResultsPage'
 import ReviewPage from './pages/ReviewPage'
 import ConfirmationPage from './pages/ConfirmationPage'
+import ApplicationsListPage from './pages/ApplicationsListPage'
 import CaseWorkerDashboard from './pages/CaseWorkerDashboard'
 import './App.css'
 
@@ -32,6 +33,7 @@ function App() {
             <Route path="/results" element={<ResultsPage />} />
             <Route path="/review" element={<ReviewPage />} />
             <Route path="/confirmation" element={<ConfirmationPage />} />
+            <Route path="/applications" element={<ApplicationsListPage />} />
             <Route path="/caseworker" element={<CaseWorkerDashboard />} />
           </Routes>
         </Layout>
