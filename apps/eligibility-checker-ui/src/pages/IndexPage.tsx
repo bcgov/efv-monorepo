@@ -9,7 +9,7 @@ const IndexPage: React.FC = () => {
   return (
     <div className="index-page">
       <div className="index-header">
-        <h1>Electronic Factor Verification (EFV)</h1>
+        <h1>Eligibilty Factor Verification (EFV)</h1>
         <p className="subtitle">Prototype Demonstrations for EFV</p>
       </div>
 
@@ -43,7 +43,7 @@ const IndexPage: React.FC = () => {
           </div>
           <Button 
             variant="primary" 
-            onClick={() => navigate('/caseworker')}
+            onClick={() => navigate('/applications')}
             className="prototype-button"
           >
             Sign In as Case Worker

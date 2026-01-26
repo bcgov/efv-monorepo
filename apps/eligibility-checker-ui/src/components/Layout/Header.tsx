@@ -4,7 +4,7 @@ import './Header.css';
 const Header = () => {
   return (
     <BCHeader
-      title="Electronic Factor Verification"
+      title="Eligibilty Factor Verification"
     />
   );
 };
