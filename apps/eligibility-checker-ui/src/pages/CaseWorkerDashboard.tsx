@@ -41,7 +41,7 @@ const CaseWorkerDashboard: React.FC = () => {
       title: 'Identity Confirmation',
       description: 'Confirm applicant identity through government records',
       status: 'manual-review',
-      dataSource: 'Multiple sources (ServiceOntario, ECAS, CRA)',
+      dataSource: 'Multiple sources (ICBC, BC Services Card, MSP, CRA)',
       authorityLevel: 'medium',
       subCriteriaCount: 3,
       expanded: false
@@ -51,7 +51,7 @@ const CaseWorkerDashboard: React.FC = () => {
       title: 'Active EI Claim Status',
       description: 'Verify if applicant has an active Employment Insurance claim',
       status: 'verified',
-      dataSource: 'Employment and Social Development Canada (ESDC)',
+      dataSource: 'Service Canada - Employment Insurance (via federal data sharing)',
       authorityLevel: 'high',
       subCriteriaCount: 2,
       expanded: false
@@ -90,7 +90,7 @@ const CaseWorkerDashboard: React.FC = () => {
       timestamp: 'January 12, 2026 10:26 AM',
       action: 'Verification Completed',
       factor: 'Active EI Claim Status',
-      details: 'Active EI claim confirmed via ESDC data sharing agreement. A. System (Automated)',
+      details: 'Active EI claim confirmed via federal data sharing agreement. A. System (Automated)',
       type: 'verification'
     },
     {
