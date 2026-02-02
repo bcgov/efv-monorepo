@@ -428,6 +428,157 @@
   position: relative;
 }
 
+.residency-verification {
+  background: #FAFAFA;
+  padding: 1.5rem;
+  border-radius: 6px;
+}
+
+.residency-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #E5E5E5;
+}
+
+.residency-header h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #313132;
+  margin: 0;
+}
+
+.confidence-score {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.score-label {
+  font-size: 0.875rem;
+  color: #606060;
+  font-weight: 500;
+}
+
+.score-value {
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.score-value.high {
+  background: #E8F5E9;
+  color: #2E7D32;
+  border: 1px solid #81C784;
+}
+
+.score-value.medium {
+  background: #FFF4E5;
+  color: #E65100;
+  border: 1px solid #FFB74D;
+}
+
+.score-value.low {
+  background: #FFEBEE;
+  color: #C62828;
+  border: 1px solid #E57373;
+}
+
+.score-detail {
+  font-size: 0.8125rem;
+  color: #606060;
+}
+
+.residency-sources {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.residency-source {
+  background: white;
+  border: 2px solid #E5E5E5;
+  border-radius: 6px;
+  padding: 1rem;
+  transition: all 0.2s;
+}
+
+.residency-source.match {
+  border-left: 4px solid #81C784;
+}
+
+.residency-source.mismatch {
+  border-left: 4px solid #E57373;
+  background: #FFF9F9;
+}
+
+.source-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.source-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.source-name {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #313132;
+}
+
+.match-indicator {
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.match-indicator.matches {
+  background: #E8F5E9;
+  color: #2E7D32;
+  border: 1px solid #81C784;
+}
+
+.match-indicator.differs {
+  background: #FFEBEE;
+  color: #C62828;
+  border: 1px solid #E57373;
+}
+
+.source-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.source-address {
+  font-size: 0.9375rem;
+  color: #313132;
+  font-weight: 500;
+}
+
+.source-meta {
+  font-size: 0.8125rem;
+  color: #606060;
+}
+
+.residency-note {
+  margin-top: 1rem;
+}
+
 @media (max-width: 1024px) {
   .dashboard-layout {
     grid-template-columns: 1fr;
