@@ -11,6 +11,15 @@ interface VerificationFactor {
   authorityLevel: 'high' | 'medium' | 'low';
   subCriteriaCount: number;
   expanded: boolean;
+  residencySources?: ResidencySource[];
+}
+
+interface ResidencySource {
+  source: string;
+  address: string;
+  lastUpdated: string;
+  authorityLevel: 'high' | 'medium' | 'low';
+  matches: boolean;
 }
 
 interface AuditLogEntry {
@@ -41,17 +50,64 @@ const CaseWorkerDashboard: React.FC = () => {
       title: 'Identity Confirmation',
       description: 'Confirm applicant identity through government records',
       status: 'manual-review',
-      dataSource: 'Multiple sources (ICBC, BC Services Card, MSP, CRA)',
+      dataSource: 'Multiple sources (ServiceOntario, ECAS, CRA)',
       authorityLevel: 'medium',
       subCriteriaCount: 3,
       expanded: false
+    },
+    {
+      id: 'residency',
+      title: 'BC Residency Verification',
+      description: 'Verify British Columbia residency through multiple authoritative sources',
+      status: 'manual-review',
+      dataSource: 'Multiple sources (ICBC, MSP, BC Hydro, CRA)',
+      authorityLevel: 'medium',
+      subCriteriaCount: 5,
+      expanded: false,
+      residencySources: [
+        {
+          source: 'Applicant Submitted',
+          address: '123 Main Street, Vancouver, BC V6B 2W9',
+          lastUpdated: 'January 12, 2026',
+          authorityLevel: 'low',
+          matches: true
+        },
+        {
+          source: 'ICBC Driver\'s License',
+          address: '123 Main Street, Vancouver, BC V6B 2W9',
+          lastUpdated: 'June 15, 2025',
+          authorityLevel: 'high',
+          matches: true
+        },
+        {
+          source: 'MSP Enrollment',
+          address: '123 Main Street, Vancouver, BC V6B 2W9',
+          lastUpdated: 'March 20, 2025',
+          authorityLevel: 'high',
+          matches: true
+        },
+        {
+          source: 'BC Hydro Account',
+          address: '456 Oak Avenue, Victoria, BC V8W 1P4',
+          lastUpdated: 'October 10, 2025',
+          authorityLevel: 'medium',
+          matches: false
+        },
+        {
+          source: 'CRA Tax Filing (2024)',
+          address: 'British Columbia',
+          lastUpdated: 'April 30, 2025',
+          authorityLevel: 'medium',
+          matches: true
+        }
+      ]
     },
     {
       id: 'ei-status',
       title: 'Active EI Claim Status',
       description: 'Verify if applicant has an active Employment Insurance claim',
       status: 'verified',
-      dataSource: 'Service Canada - Employment Insurance (via federal data sharing)',
+      dataSource: 'Employment and Social Development Canada (ESDC)',
       authorityLevel: 'high',
       subCriteriaCount: 2,
       expanded: false
@@ -88,13 +144,21 @@ const CaseWorkerDashboard: React.FC = () => {
     {
       id: '3',
       timestamp: 'January 12, 2026 10:26 AM',
-      action: 'Verification Completed',
-      factor: 'Active EI Claim Status',
-      details: 'Active EI claim confirmed via federal data sharing agreement. A. System (Automated)',
-      type: 'verification'
+      action: 'Address Triangulation Completed',
+      factor: 'BC Residency Verification',
+      details: '4 of 5 sources match Vancouver address. BC Hydro account shows Victoria address. Flagged for manual review to verify recent move or multiple residences. A. System (Automated)',
+      type: 'review'
     },
     {
       id: '4',
+      timestamp: 'January 12, 2026 10:26 AM',
+      action: 'Verification Completed',
+      factor: 'Active EI Claim Status',
+      details: 'Active EI claim confirmed via ESDC data sharing agreement. A. System (Automated)',
+      type: 'verification'
+    },
+    {
+      id: '5',
       timestamp: 'January 12, 2026 10:28 AM',
       action: 'Verification Failed',
       factor: 'Educational Enrollment Status',
@@ -279,9 +343,50 @@ const CaseWorkerDashboard: React.FC = () => {
 
                   {factor.expanded && (
                     <div className="sub-criteria">
-                      <p className="sub-criteria-placeholder">
-                        Detailed sub-criteria would be displayed here...
-                      </p>
+                      {factor.id === 'residency' && factor.residencySources ? (
+                        <div className="residency-verification">
+                          <div className="residency-header">
+                            <h4>Address Triangulation from Multiple Sources</h4>
+                            <div className="confidence-score">
+                              <span className="score-label">Confidence Score:</span>
+                              <span className="score-value medium">Medium</span>
+                              <span className="score-detail">(4 of 5 sources match)</span>
+                            </div>
+                          </div>
+                          
+                          <div className="residency-sources">
+                            {factor.residencySources.map((source, index) => (
+                              <div key={index} className={`residency-source ${source.matches ? 'match' : 'mismatch'}`}>
+                                <div className="source-header">
+                                  <div className="source-info">
+                                    <span className="source-name">{source.source}</span>
+                                    <span className={`badge badge-${source.authorityLevel === 'high' ? 'success' : source.authorityLevel === 'medium' ? 'info' : 'warning'}`}>
+                                      {source.authorityLevel} authority
+                                    </span>
+                                  </div>
+                                  <span className={`match-indicator ${source.matches ? 'matches' : 'differs'}`}>
+                                    {source.matches ? 'Matches' : 'Differs'}
+                                  </span>
+                                </div>
+                                <div className="source-details">
+                                  <div className="source-address">{source.address}</div>
+                                  <div className="source-meta">Last updated: {source.lastUpdated}</div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+
+                          <Callout variant="lightGold">
+                            <strong>Manual Review Required:</strong> BC Hydro account shows different address (Victoria). 
+                            Adjudicator should verify if applicant recently moved or maintains multiple residences. 
+                            Consider requesting utility bills or lease agreement for Vancouver address.
+                          </Callout>
+                        </div>
+                      ) : (
+                        <p className="sub-criteria-placeholder">
+                          Detailed sub-criteria would be displayed here...
+                        </p>
+                      )}
                     </div>
                   )}
                 </div>
