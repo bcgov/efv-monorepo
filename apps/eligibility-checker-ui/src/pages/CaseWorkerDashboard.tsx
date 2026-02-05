@@ -11,6 +11,7 @@ interface VerificationFactor {
   authorityLevel: 'high' | 'medium' | 'low';
   subCriteriaCount: number;
   expanded: boolean;
+  submittedAddress?: string;
   residencySources?: ResidencySource[];
 }
 
@@ -20,6 +21,8 @@ interface ResidencySource {
   lastUpdated: string;
   authorityLevel: 'high' | 'medium' | 'low';
   matches: boolean;
+  note?: string;
+  interpretation?: string;
 }
 
 interface AuditLogEntry {
@@ -64,34 +67,43 @@ const CaseWorkerDashboard: React.FC = () => {
       authorityLevel: 'medium',
       subCriteriaCount: 5,
       expanded: false,
+      submittedAddress: '456 Main Street, Unit 302, Vancouver, BC V6B 2W5',
       residencySources: [
         {
-          source: 'ICBC Driver Licensing',
-          address: 'Vancouver, BC (Postal: V6B)',
+          source: 'Canada Revenue Agency',
+          address: '789 Kingsway Avenue, Unit 12, Burnaby, BC V5H 2E3',
+          lastUpdated: 'April 2025 (Tax Year 2024)',
+          authorityLevel: 'high',
+          matches: false,
+          note: 'Reflects address at time of tax filing, not current residence',
+          interpretation: 'Commonly lags behind real-world moves. Supports historical presence, not current occupancy.'
+        },
+        {
+          source: 'ICBC',
+          address: '456 Main Street, Unit 302, Vancouver, BC V6B 2W5',
           lastUpdated: 'December 15, 2025',
           authorityLevel: 'high',
-          matches: true
+          matches: true,
+          note: 'Address reported by the licensee for driver licensing purposes',
+          interpretation: 'Self-reported by the licensee. Typically updated soon after a move, but not independently verified. Indicates current address intent, not duration of residence.'
         },
         {
-          source: 'Medical Services Plan (MSP)',
-          address: 'Vancouver, BC (Postal: V6B)',
+          source: 'MSP',
+          address: '456 Main Street, Unit 302, Vancouver, BC V6B 2W5',
           lastUpdated: 'November 3, 2025',
           authorityLevel: 'high',
-          matches: true
-        },
-        {
-          source: 'Canada Revenue Agency',
-          address: 'Tax filing address - British Columbia',
-          lastUpdated: 'April 30, 2025',
-          authorityLevel: 'medium',
-          matches: true
+          matches: true,
+          note: 'Registered address for BC health care coverage and service eligibility region',
+          interpretation: 'Confirms administrative registration within BC systems. Indicates presence in BC, not physical occupancy or residency duration. Address updates may lag behind actual move dates.'
         },
         {
           source: 'BC Hydro',
-          address: 'Vancouver, BC (Postal: V6B)',
-          lastUpdated: 'January 5, 2026',
+          address: '456 Main Street, Unit 302, Vancouver, BC V6B 2W5',
+          lastUpdated: 'January 2026',
           authorityLevel: 'medium',
-          matches: true
+          matches: true,
+          note: 'Active utility service account address',
+          interpretation: 'Indicates utility service established at this location. Suggests physical occupancy, but does not confirm who resides there. Does not confirm length or continuity of residence.'
         }
       ]
     },
@@ -338,10 +350,15 @@ const CaseWorkerDashboard: React.FC = () => {
                     <div className="sub-criteria">
                       {factor.id === 'residency' && factor.residencySources ? (
                         <div className="residency-verification">
+                          <div className="submitted-address-section">
+                            <div className="submitted-address-label">APPLICANT SUBMITTED ADDRESS</div>
+                            <div className="submitted-address">{factor.submittedAddress}</div>
+                          </div>
+                          
                           <div className="residency-header">
                             <h4>Residency Signals (Decision Support)</h4>
                             <p className="residency-subtitle">
-                              Multiple authoritative sources provide signals about residency. All sources aligned with Vancouver, BC address.
+                              Multiple authoritative sources provide signals about residency. 3 of 4 sources aligned with submitted address.
                             </p>
                           </div>
                           
@@ -360,37 +377,26 @@ const CaseWorkerDashboard: React.FC = () => {
                                   </span>
                                 </div>
                                 <div className="source-details">
-                                  <div className="source-address-label">Address Indicator</div>
+                                  <div className="source-address-label">AUTHORITATIVE FOR</div>
+                                  <div className="source-note" style={{marginTop: 0, marginBottom: '0.75rem'}}>
+                                    {source.note}
+                                  </div>
+                                  <div className="source-address-label">ADDRESS INDICATOR</div>
                                   <div className="source-address">{source.address}</div>
                                   <div className="source-meta">Updated: {source.lastUpdated}</div>
-                                  {source.source === 'ICBC Driver Licensing' && (
-                                    <div className="source-note">
-                                      Current driver's license on file with Vancouver address. Address updated 2 months ago.
-                                    </div>
-                                  )}
-                                  {source.source === 'Medical Services Plan (MSP)' && (
-                                    <div className="source-note">
-                                      MSP registration shows Vancouver address. Premium billing address matches.
-                                    </div>
-                                  )}
-                                  {source.source === 'Canada Revenue Agency' && (
-                                    <div className="source-note">
-                                      Tax filing address for most recent completed tax year.
-                                    </div>
-                                  )}
-                                  {source.source === 'BC Hydro' && (
-                                    <div className="source-note">
-                                      Active utility service account holder address.
-                                    </div>
-                                  )}
+                                  <div className="source-address-label" style={{marginTop: '0.75rem'}}>SIGNAL INTERPRETATION</div>
+                                  <div className="source-note" style={{marginTop: '0.5rem'}}>
+                                    {source.interpretation}
+                                  </div>
                                 </div>
                               </div>
                             ))}
                           </div>
 
                           <Callout variant="lightBlue">
-                            <strong>Note:</strong> ICBC address is self-reported by licensee and updated voluntarily. 
-                            MSP address determines service eligibility region.
+                            <strong>Residency Decision Context:</strong> CRA address reflects historical presence at time of tax filing. 
+                            Recent move from Burnaby to Vancouver is supported by 3 current data sources (ICBC, MSP, BC Hydro) 
+                            all showing the submitted Vancouver address.
                           </Callout>
                         </div>
                       ) : factor.id === 'identity' ? (
