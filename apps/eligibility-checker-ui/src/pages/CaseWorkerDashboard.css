@@ -434,6 +434,29 @@
   border-radius: 6px;
 }
 
+.submitted-address-section {
+  background: white;
+  padding: 1rem;
+  border-radius: 6px;
+  border-left: 4px solid #6B9BD1;
+  margin-bottom: 1.5rem;
+}
+
+.submitted-address-label {
+  font-size: 0.75rem;
+  color: #606060;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.submitted-address {
+  font-size: 1rem;
+  color: #313132;
+  font-weight: 600;
+}
+
 .residency-header {
   display: flex;
   justify-content: space-between;
@@ -520,8 +543,8 @@
 }
 
 .residency-source.mismatch {
-  border-left: 4px solid #E57373;
-  background: #FFF9F9;
+  border-left: 4px solid #FFB74D;
+  background: #FFF9F5;
 }
 
 .source-header {
@@ -559,9 +582,9 @@
 }
 
 .match-indicator.differs {
-  background: #FFEBEE;
-  color: #C62828;
-  border: 1px solid #E57373;
+  background: #FFF4E5;
+  color: #E65100;
+  border: 1px solid #FFB74D;
 }
 
 .source-details {
