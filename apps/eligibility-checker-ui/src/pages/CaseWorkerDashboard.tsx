@@ -48,11 +48,11 @@ const CaseWorkerDashboard: React.FC = () => {
     {
       id: 'identity',
       title: 'Identity Confirmation',
-      description: 'Confirm applicant identity through government records',
-      status: 'manual-review',
-      dataSource: 'Multiple sources (ServiceOntario, ECAS, CRA)',
-      authorityLevel: 'medium',
-      subCriteriaCount: 3,
+      description: 'Identity must be verified before other eligibility factors can be assessed',
+      status: 'verified',
+      dataSource: 'BC Services Card (digital) with in-person document verification',
+      authorityLevel: 'high',
+      subCriteriaCount: 5,
       expanded: false
     },
     {
@@ -66,37 +66,30 @@ const CaseWorkerDashboard: React.FC = () => {
       expanded: false,
       residencySources: [
         {
-          source: 'Applicant Submitted',
-          address: '123 Main Street, Vancouver, BC V6B 2W9',
-          lastUpdated: 'January 12, 2026',
-          authorityLevel: 'low',
-          matches: true
-        },
-        {
-          source: 'ICBC Driver\'s License',
-          address: '123 Main Street, Vancouver, BC V6B 2W9',
-          lastUpdated: 'June 15, 2025',
+          source: 'ICBC Driver Licensing',
+          address: 'Vancouver, BC (Postal: V6B)',
+          lastUpdated: 'December 15, 2025',
           authorityLevel: 'high',
           matches: true
         },
         {
-          source: 'MSP Enrollment',
-          address: '123 Main Street, Vancouver, BC V6B 2W9',
-          lastUpdated: 'March 20, 2025',
+          source: 'Medical Services Plan (MSP)',
+          address: 'Vancouver, BC (Postal: V6B)',
+          lastUpdated: 'November 3, 2025',
           authorityLevel: 'high',
           matches: true
         },
         {
-          source: 'BC Hydro Account',
-          address: '456 Oak Avenue, Victoria, BC V8W 1P4',
-          lastUpdated: 'October 10, 2025',
-          authorityLevel: 'medium',
-          matches: false
-        },
-        {
-          source: 'CRA Tax Filing (2024)',
-          address: 'British Columbia',
+          source: 'Canada Revenue Agency',
+          address: 'Tax filing address - British Columbia',
           lastUpdated: 'April 30, 2025',
+          authorityLevel: 'medium',
+          matches: true
+        },
+        {
+          source: 'BC Hydro',
+          address: 'Vancouver, BC (Postal: V6B)',
+          lastUpdated: 'January 5, 2026',
           authorityLevel: 'medium',
           matches: true
         }
@@ -346,12 +339,10 @@ const CaseWorkerDashboard: React.FC = () => {
                       {factor.id === 'residency' && factor.residencySources ? (
                         <div className="residency-verification">
                           <div className="residency-header">
-                            <h4>Address Triangulation from Multiple Sources</h4>
-                            <div className="confidence-score">
-                              <span className="score-label">Confidence Score:</span>
-                              <span className="score-value medium">Medium</span>
-                              <span className="score-detail">(4 of 5 sources match)</span>
-                            </div>
+                            <h4>Residency Signals (Decision Support)</h4>
+                            <p className="residency-subtitle">
+                              Multiple authoritative sources provide signals about residency. All sources aligned with Vancouver, BC address.
+                            </p>
                           </div>
                           
                           <div className="residency-sources">
@@ -365,22 +356,111 @@ const CaseWorkerDashboard: React.FC = () => {
                                     </span>
                                   </div>
                                   <span className={`match-indicator ${source.matches ? 'matches' : 'differs'}`}>
-                                    {source.matches ? 'Matches' : 'Differs'}
+                                    {source.matches ? 'Aligned' : 'Differs'}
                                   </span>
                                 </div>
                                 <div className="source-details">
+                                  <div className="source-address-label">Address Indicator</div>
                                   <div className="source-address">{source.address}</div>
-                                  <div className="source-meta">Last updated: {source.lastUpdated}</div>
+                                  <div className="source-meta">Updated: {source.lastUpdated}</div>
+                                  {source.source === 'ICBC Driver Licensing' && (
+                                    <div className="source-note">
+                                      Current driver's license on file with Vancouver address. Address updated 2 months ago.
+                                    </div>
+                                  )}
+                                  {source.source === 'Medical Services Plan (MSP)' && (
+                                    <div className="source-note">
+                                      MSP registration shows Vancouver address. Premium billing address matches.
+                                    </div>
+                                  )}
+                                  {source.source === 'Canada Revenue Agency' && (
+                                    <div className="source-note">
+                                      Tax filing address for most recent completed tax year.
+                                    </div>
+                                  )}
+                                  {source.source === 'BC Hydro' && (
+                                    <div className="source-note">
+                                      Active utility service account holder address.
+                                    </div>
+                                  )}
                                 </div>
                               </div>
                             ))}
                           </div>
 
-                          <Callout variant="lightGold">
-                            <strong>Manual Review Required:</strong> BC Hydro account shows different address (Victoria). 
-                            Adjudicator should verify if applicant recently moved or maintains multiple residences. 
-                            Consider requesting utility bills or lease agreement for Vancouver address.
+                          <Callout variant="lightBlue">
+                            <strong>Note:</strong> ICBC address is self-reported by licensee and updated voluntarily. 
+                            MSP address determines service eligibility region.
                           </Callout>
+                        </div>
+                      ) : factor.id === 'identity' ? (
+                        <div className="identity-verification">
+                          <div className="identity-checks">
+                            <div className="identity-check verified">
+                              <div className="check-header">
+                                <h5>Legal Name Match Across Systems</h5>
+                                <span className="check-status">Verified</span>
+                              </div>
+                              <p className="check-description">
+                                Full legal name matches across Provincial Identity Registry, BC Services Card, and driver's license. 
+                                No aliases or alternate spellings found.
+                              </p>
+                              <div className="check-source">Source: Provincial Identity Registry, ICBC</div>
+                            </div>
+                            
+                            <div className="identity-check verified">
+                              <div className="check-header">
+                                <h5>Date of Birth Consistency</h5>
+                                <span className="check-status">Verified</span>
+                              </div>
+                              <p className="check-description">
+                                Date of birth consistent across all checked systems including birth registry, health records, and driver's license.
+                              </p>
+                              <div className="check-source">Source: Birth Registry, MSP, ICBC</div>
+                            </div>
+                            
+                            <div className="identity-check verified">
+                              <div className="check-header">
+                                <h5>Photo Identification Verification</h5>
+                                <span className="check-status">Verified</span>
+                              </div>
+                              <p className="check-description">
+                                Government-issued photo ID verified in person at Service BC office. BC driver's license presented and validated.
+                              </p>
+                              <div className="check-source">Source: In-person verification at Service BC - Downtown Vancouver</div>
+                            </div>
+                            
+                            <div className="identity-check verified">
+                              <div className="check-header">
+                                <h5>Address History Verification</h5>
+                                <span className="check-status">Verified</span>
+                              </div>
+                              <p className="check-description">
+                                5-year address history confirmed through driver's license updates and MSP records. No gaps in residency.
+                              </p>
+                              <div className="check-source">Source: ICBC, MSP</div>
+                            </div>
+                            
+                            <div className="identity-check verified">
+                              <div className="check-header">
+                                <h5>Unique Identity Confirmation</h5>
+                                <span className="check-status">Verified</span>
+                              </div>
+                              <p className="check-description">
+                                No duplicate records found across systems. Identity is unique within provincial databases.
+                              </p>
+                              <div className="check-source">Source: Provincial Identity Registry</div>
+                            </div>
+                          </div>
+                          
+                          <div className="identity-limitations">
+                            <h5>Limitations</h5>
+                            <ul>
+                              <li>Does not confirm current residency</li>
+                              <li>Does not confirm legal status for program</li>
+                              <li>Does not detect informal name usage</li>
+                            </ul>
+                          </div>
                         </div>
                       ) : (
                         <p className="sub-criteria-placeholder">

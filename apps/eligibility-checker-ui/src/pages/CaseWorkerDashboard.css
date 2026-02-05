@@ -447,6 +447,12 @@
   font-size: 1rem;
   font-weight: 600;
   color: #313132;
+  margin: 0 0 0.5rem 0;
+}
+
+.residency-subtitle {
+  font-size: 0.875rem;
+  color: #606060;
   margin: 0;
 }
 
@@ -564,10 +570,18 @@
   gap: 0.5rem;
 }
 
+.source-address-label {
+  font-size: 0.75rem;
+  color: #606060;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
 .source-address {
   font-size: 0.9375rem;
   color: #313132;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .source-meta {
@@ -575,8 +589,128 @@
   color: #606060;
 }
 
+.source-note {
+  font-size: 0.875rem;
+  color: #606060;
+  line-height: 1.4;
+  padding: 0.75rem;
+  background: #F8F8F8;
+  border-radius: 4px;
+  margin-top: 0.5rem;
+}
+
 .residency-note {
   margin-top: 1rem;
+}
+
+/* Identity Verification Styles */
+.identity-verification {
+  background: #FAFAFA;
+  padding: 1.5rem;
+  border-radius: 6px;
+}
+
+.identity-checks {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.identity-check {
+  background: white;
+  border: 2px solid #E5E5E5;
+  border-radius: 6px;
+  padding: 1rem;
+}
+
+.identity-check.verified {
+  border-left: 4px solid #81C784;
+}
+
+.check-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.check-header h5 {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #313132;
+  margin: 0;
+}
+
+.check-status {
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: #E8F5E9;
+  color: #2E7D32;
+  border: 1px solid #81C784;
+}
+
+.check-description {
+  font-size: 0.875rem;
+  color: #313132;
+  line-height: 1.5;
+  margin: 0 0 0.75rem 0;
+}
+
+.check-source {
+  font-size: 0.8125rem;
+  color: #606060;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.check-source::before {
+  content: "○";
+  color: #606060;
+}
+
+.identity-limitations {
+  background: white;
+  padding: 1rem;
+  border-radius: 6px;
+  border-left: 3px solid #E5E5E5;
+}
+
+.identity-limitations h5 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #313132;
+  margin: 0 0 0.75rem 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.identity-limitations ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.identity-limitations li {
+  font-size: 0.875rem;
+  color: #606060;
+  padding-left: 1.25rem;
+  position: relative;
+}
+
+.identity-limitations li::before {
+  content: "•";
+  position: absolute;
+  left: 0;
+  color: #606060;
 }
 
 @media (max-width: 1024px) {
