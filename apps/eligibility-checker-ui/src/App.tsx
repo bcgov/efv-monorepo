@@ -14,6 +14,7 @@ import ReviewPage from './pages/ReviewPage'
 import ConfirmationPage from './pages/ConfirmationPage'
 import ApplicationsListPage from './pages/ApplicationsListPage'
 import CaseWorkerDashboard from './pages/CaseWorkerDashboard'
+import RulesEngineDashboard from './pages/RulesEngineDashboard'
 import './App.css'
 
 function App() {
@@ -35,6 +36,7 @@ function App() {
             <Route path="/confirmation" element={<ConfirmationPage />} />
             <Route path="/applications" element={<ApplicationsListPage />} />
             <Route path="/caseworker" element={<CaseWorkerDashboard />} />
+            <Route path="/rules-engine" element={<RulesEngineDashboard />} />
           </Routes>
         </Layout>
       </Router>

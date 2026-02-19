@@ -53,7 +53,7 @@ const CaseWorkerDashboard: React.FC = () => {
       title: 'Identity Confirmation',
       description: 'Identity must be verified before other eligibility factors can be assessed',
       status: 'verified',
-      dataSource: 'BC Services Card (digital) with in-person document verification',
+      dataSource: 'BC Services Card (digital)',
       authorityLevel: 'high',
       subCriteriaCount: 5,
       expanded: false

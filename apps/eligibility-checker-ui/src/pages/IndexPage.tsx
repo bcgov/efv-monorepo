@@ -10,7 +10,7 @@ const IndexPage: React.FC = () => {
     <div className="index-page">
       <div className="index-header">
         <h1>Eligibilty Factor Verification (EFV)</h1>
-        <p className="subtitle">Prototype Demonstrations for EFV</p>
+        <p className="subtitle">Demonstration Prototypes for EFV</p>
       </div>
 
       <div className="prototype-grid">
@@ -49,13 +49,31 @@ const IndexPage: React.FC = () => {
             Sign In as Case Worker
           </Button>
         </div>
+
+        <div className="prototype-card">
+          <h2>Eligibility Factor Management</h2>
+          <p>Manage eligibility factors with transparent logic and version control</p>
+          <div className="card-features">
+            <span className="feature-badge">Factor Management</span>
+            <span className="feature-badge">Version Control</span>
+            <span className="feature-badge">Clear Logic</span>
+            <span className="feature-badge">Transparency</span>
+          </div>
+          <Button 
+            variant="primary" 
+            onClick={() => navigate('/rules-engine')}
+            className="prototype-button"
+          >
+            View Factor Management
+          </Button>
+        </div>
       </div>
 
       <div className="prototype-disclaimer">
         <div className="disclaimer-content">
-          <h3>Prototype Demonstration</h3>
+          <h3>Demonstration Purpose</h3>
           <p>
-            These are interactive prototypes for stakeholder review and testing. They demonstrate potential 
+            These are interactive demonstrations for stakeholder review and testing. They showcase potential 
             workflows and are not production systems. All data is simulated for demonstration purposes.
           </p>
         </div>
