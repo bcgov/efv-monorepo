@@ -15,6 +15,7 @@ import ConfirmationPage from './pages/ConfirmationPage'
 import ApplicationsListPage from './pages/ApplicationsListPage'
 import CaseWorkerDashboard from './pages/CaseWorkerDashboard'
 import RulesEngineDashboard from './pages/RulesEngineDashboard'
+import DataSourceExplorer from './pages/DataSourceExplorer'
 import './App.css'
 
 function App() {
@@ -37,6 +38,7 @@ function App() {
             <Route path="/applications" element={<ApplicationsListPage />} />
             <Route path="/caseworker" element={<CaseWorkerDashboard />} />
             <Route path="/rules-engine" element={<RulesEngineDashboard />} />
+            <Route path="/data-sources" element={<DataSourceExplorer />} />
           </Routes>
         </Layout>
       </Router>

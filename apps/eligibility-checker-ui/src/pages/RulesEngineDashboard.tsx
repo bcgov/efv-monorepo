@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button, Callout } from '@bcgov/design-system-react-components';
 import './RulesEngineDashboard.css';
 
@@ -10,6 +11,7 @@ interface RuleNode {
   lastModified: string;
   description: string;
   dataSource: string;
+  dataSourceIds: string[];
   conditions?: RuleCondition[];
   dependencies?: string[];
   version: string;
@@ -24,6 +26,7 @@ interface RuleCondition {
 }
 
 const RulesEngineDashboard: React.FC = () => {
+  const navigate = useNavigate();
   const [selectedRule, setSelectedRule] = useState<RuleNode | null>(null);
 
   const [rules] = useState<RuleNode[]>([
@@ -36,6 +39,7 @@ const RulesEngineDashboard: React.FC = () => {
       version: '1.0',
       description: 'Identity must be verified before other eligibility factors can be assessed',
       dataSource: 'BC Services Card',
+      dataSourceIds: ['icbc'],
       conditions: [
         {
           id: 'i1',
@@ -63,6 +67,7 @@ const RulesEngineDashboard: React.FC = () => {
       version: '1.0',
       description: 'Verifies that total annual income is below the program threshold',
       dataSource: 'Canada Revenue Agency (CRA) - T1 General',
+      dataSourceIds: ['cra'],
       conditions: [
         {
           id: 'c1',
@@ -90,6 +95,7 @@ const RulesEngineDashboard: React.FC = () => {
       version: '1.0',
       description: 'Confirms British Columbia residency through multi-source verification',
       dataSource: 'Multiple sources (ICBC, MSP, BC Hydro, CRA)',
+      dataSourceIds: ['icbc', 'msp', 'bc-hydro', 'cra'],
       conditions: [
         {
           id: 'r1',
@@ -166,6 +172,17 @@ const RulesEngineDashboard: React.FC = () => {
               <div className="meta-item">
                 <span className="meta-label">Data Source:</span>
                 <span className="meta-value">{rule.dataSource}</span>
+              </div>
+              <div className="meta-item source-link">
+                <button
+                  className="view-source-link"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/data-sources`);
+                  }}
+                >
+                  View Source Profile →
+                </button>
               </div>
             </div>
           </div>
