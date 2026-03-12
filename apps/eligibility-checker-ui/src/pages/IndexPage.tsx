@@ -67,6 +67,24 @@ const IndexPage: React.FC = () => {
             View Factor Management
           </Button>
         </div>
+
+        <div className="prototype-card">
+          <h2>Data Source Explorer</h2>
+          <p>Explore authoritative data source profiles, integration options, and data requirements</p>
+          <div className="card-features">
+            <span className="feature-badge">Source Profiles</span>
+            <span className="feature-badge">Data Requirements</span>
+            <span className="feature-badge">Integration Options</span>
+            <span className="feature-badge">LTSA</span>
+          </div>
+          <Button 
+            variant="primary" 
+            onClick={() => navigate('/data-sources')}
+            className="prototype-button"
+          >
+            Explore Data Sources
+          </Button>
+        </div>
       </div>
 
       <div className="prototype-disclaimer">

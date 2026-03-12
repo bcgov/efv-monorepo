@@ -160,6 +160,27 @@
   color: #333;
 }
 
+.meta-item.source-link {
+  margin-top: 0.25rem;
+}
+
+.view-source-link {
+  background: none;
+  border: none;
+  color: #003366;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.view-source-link:hover {
+  color: #1a5a96;
+  text-decoration: underline;
+}
+
 /* Rule Detail */
 .rule-detail {
   background: white;
