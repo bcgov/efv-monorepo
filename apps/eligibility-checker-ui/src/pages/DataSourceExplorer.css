@@ -597,6 +597,478 @@
   margin-bottom: 0;
 }
 
+/* ===========================
+   CRA-specific: Income Data
+   =========================== */
+.dse-income-categories {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.income-category {
+  padding: 1rem 1.25rem;
+  border-radius: 6px;
+  border-left: 4px solid;
+}
+
+.income-category.earned {
+  background: #E8F5E9;
+  border-color: #2E7D32;
+}
+
+.income-category.unearned {
+  background: #FFF8E1;
+  border-color: #F57F17;
+}
+
+.income-category.excluded {
+  background: #F5F5F5;
+  border-color: #9E9E9E;
+}
+
+.income-category h5 {
+  margin: 0 0 0.25rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.income-category p {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: #606060;
+}
+
+.dse-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.filter-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #606060;
+  margin-right: 0.25rem;
+}
+
+.filter-btn {
+  font-size: 0.8125rem;
+  padding: 0.375rem 0.875rem;
+  border: 1px solid #D5D5D5;
+  border-radius: 16px;
+  background: white;
+  color: #333;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.filter-btn:hover {
+  border-color: #003366;
+}
+
+.filter-btn.active {
+  background: #003366;
+  color: white;
+  border-color: #003366;
+}
+
+.filter-count {
+  font-size: 0.75rem;
+  color: #999;
+  margin-left: auto;
+}
+
+/* Tables */
+.dse-table-wrapper {
+  overflow-x: auto;
+  border: 1px solid #E5E5E5;
+  border-radius: 6px;
+  margin-bottom: 1.5rem;
+}
+
+.dse-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+}
+
+.dse-table th {
+  background: #F5F5F5;
+  padding: 0.625rem 0.75rem;
+  text-align: left;
+  font-weight: 700;
+  color: #333;
+  border-bottom: 2px solid #E5E5E5;
+  white-space: nowrap;
+}
+
+.dse-table td {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid #F0F0F0;
+  color: #333;
+}
+
+.dse-table .row-alt {
+  background: #FAFAFA;
+}
+
+.code-cell {
+  font-family: 'Courier New', monospace;
+  font-weight: 600;
+}
+
+.code-cell.in-mou {
+  color: #2E7D32;
+}
+
+.code-cell.not-mou {
+  color: #C62828;
+}
+
+.cost-free {
+  color: #2E7D32;
+}
+
+/* ===========================
+   CRA-specific: Technical
+   =========================== */
+.dse-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.dse-info-card {
+  background: white;
+  border: 1px solid #E5E5E5;
+  border-radius: 6px;
+  padding: 1.25rem;
+}
+
+.dse-info-card h5 {
+  margin: 0 0 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #003366;
+}
+
+.server-entry {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.server-entry code {
+  font-family: 'Courier New', monospace;
+  font-size: 0.8125rem;
+  background: #F5F5F5;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  color: #333;
+}
+
+.dse-compact-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.dse-compact-list li {
+  padding: 0.375rem 0;
+  font-size: 0.8125rem;
+  border-bottom: 1px solid #F0F0F0;
+}
+
+.dse-compact-list li:last-child {
+  border-bottom: none;
+}
+
+.dse-record-types {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+}
+
+.record-type-card {
+  border: 1px solid #E5E5E5;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.record-type-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: white;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font-size: 0.875rem;
+}
+
+.record-type-header:hover {
+  background: #FAFAFA;
+}
+
+.record-code {
+  font-family: 'Courier New', monospace;
+  font-weight: 700;
+  font-size: 0.875rem;
+  background: #F5F5F5;
+  padding: 0.125rem 0.5rem;
+  border-radius: 4px;
+  min-width: 54px;
+  text-align: center;
+}
+
+.record-label {
+  font-weight: 600;
+  flex: 1;
+}
+
+.record-toggle {
+  font-size: 0.625rem;
+  color: #999;
+}
+
+.record-type-body {
+  padding: 0.75rem 1rem 1rem;
+  background: #FAFAFA;
+  border-top: 1px solid #E5E5E5;
+  font-size: 0.8125rem;
+  color: #606060;
+}
+
+.record-type-body p {
+  margin: 0;
+}
+
+/* Matching criteria */
+.dse-matching {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.matching-block {
+  padding: 1rem 1.25rem;
+  border-radius: 6px;
+  border: 1px solid #E5E5E5;
+  flex: 1;
+  min-width: 200px;
+}
+
+.matching-block.primary {
+  background: #E3F2FD;
+  border-color: #64B5F6;
+}
+
+.matching-block.secondary {
+  background: #FFF8E1;
+  border-color: #FFD54F;
+}
+
+.matching-label {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: #003366;
+  margin-bottom: 0.375rem;
+}
+
+.matching-value {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.matching-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.matching-field {
+  font-size: 0.8125rem;
+  padding: 0.25rem 0.5rem;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 4px;
+}
+
+.matching-plus {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #999;
+}
+
+.dse-note {
+  font-size: 0.8125rem;
+  color: #606060;
+  font-style: italic;
+  margin-bottom: 2rem;
+}
+
+.dse-text {
+  font-size: 0.875rem;
+  color: #606060;
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+}
+
+/* ===========================
+   CRA-specific: Process
+   =========================== */
+.dse-process-steps {
+  margin-bottom: 2rem;
+}
+
+.process-step-row {
+  display: flex;
+  gap: 1rem;
+}
+
+.step-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 36px;
+}
+
+.step-number {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #003366;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.step-line {
+  width: 2px;
+  flex: 1;
+  background: #D5D5D5;
+  min-height: 24px;
+}
+
+.step-content {
+  padding-bottom: 1.5rem;
+}
+
+.step-content h5 {
+  margin: 0.25rem 0 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #333;
+}
+
+.step-content p {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: #606060;
+}
+
+.dse-validation-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+}
+
+.validation-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: white;
+  border: 1px solid #E5E5E5;
+  border-radius: 6px;
+}
+
+.validation-number {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #E3F2FD;
+  color: #003366;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.validation-step p {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: #333;
+  line-height: 1.5;
+}
+
+.dse-pain-points {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+}
+
+.pain-point {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  background: #FFF3F0;
+  border: 1px solid #FFCDD2;
+  border-radius: 6px;
+  font-size: 0.8125rem;
+  color: #C62828;
+}
+
+.pain-point::before {
+  content: '\26A0';
+  font-size: 0.875rem;
+}
+
+/* Badges (shared) */
+.badge {
+  display: inline-block;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  padding: 0.125rem 0.5rem;
+  border-radius: 10px;
+  white-space: nowrap;
+}
+
+.badge-success {
+  background: #E8F5E9;
+  color: #2E7D32;
+}
+
+.badge-warning {
+  background: #FFF8E1;
+  color: #F57F17;
+}
+
+.badge-info {
+  background: #E3F2FD;
+  color: #1565C0;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .dse-layout {
