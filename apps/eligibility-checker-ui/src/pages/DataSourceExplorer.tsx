@@ -34,6 +34,24 @@ interface GlossaryEntry {
   definition: string;
 }
 
+interface IncomeCode {
+  code: string;
+  description: string;
+  inMOU: boolean;
+}
+
+interface RecordType {
+  code: string;
+  label: string;
+  direction: string;
+  description: string;
+}
+
+interface CostTier {
+  range: string;
+  cost: string;
+}
+
 interface DataSourceProfile {
   id: string;
   name: string;
@@ -53,17 +71,31 @@ interface DataSourceProfile {
   dataRequirements: DataShape[];
   integrationOptions: IntegrationOption[];
   glossary: GlossaryEntry[];
+  extraTabs?: string[];
+  incomeCodes?: IncomeCode[];
+  recordTypes?: RecordType[];
+  costTiers?: CostTier[];
+  matchingCriteria?: { primary: string; secondary: string[]; note: string };
+  processSteps?: { step: number; title: string; description: string }[];
+  validationSteps?: string[];
+  painPoints?: string[];
 }
 
-type SectionId = 'overview' | 'contacts' | 'requirements' | 'options' | 'glossary';
+type SectionId = 'overview' | 'contacts' | 'requirements' | 'options' | 'glossary' | 'income' | 'technical' | 'process';
 
-const sections: { id: SectionId; label: string }[] = [
+const baseSections: { id: SectionId; label: string }[] = [
   { id: 'overview', label: 'Overview' },
   { id: 'contacts', label: 'Contacts' },
   { id: 'requirements', label: 'Data Requirements' },
   { id: 'options', label: 'Integration Options' },
   { id: 'glossary', label: 'Glossary' },
 ];
+
+const extraTabDefs: Record<string, { id: SectionId; label: string }> = {
+  'income': { id: 'income', label: 'Income Data' },
+  'technical': { id: 'technical', label: 'Technical' },
+  'process': { id: 'process', label: 'SDPR Process' },
+};
 
 const dataSourceProfiles: DataSourceProfile[] = [
   {
@@ -248,15 +280,206 @@ const dataSourceProfiles: DataSourceProfile[] = [
     description: 'Federal agency administering tax laws and delivering benefit programs for the Government of Canada.',
     category: 'federal',
     relatedFactors: ['Income Within Defined Range', 'BC Residency Verification'],
+    extraTabs: ['income', 'technical', 'process'],
     overview: {
-      mandate: 'Content will be added soon.',
-      relevance: 'Content will be added soon.',
-      keyPoints: [],
+      mandate: 'CRA administers tax laws for the Government of Canada and most provinces and territories. It collects income tax returns and delivers various benefit and credit programs. The Income Verification Program (IVP) enables provinces and territories to verify taxpayer income data for eligibility determinations.',
+      relevance: 'CRA data assists SDPR in verifying one core eligibility condition: the family unit income cannot equal or exceed the income assistance rates for a family unit of their size and circumstances, plus any recurring supplements for anyone already receiving assistance in the previous month who would still be eligible.',
+      keyPoints: [
+        'A Memorandum of Understanding (MOU) between the provincial body and CRA must be on file',
+        'Individual consent is required at application time to authorize CRA to release taxpayer information',
+        'Data is exchanged via SFTP using Entrust PKI encryption — responses typically returned within hours',
+        'Primary identifier: Social Insurance Number (SIN) plus 2 of 3 secondary fields (surname, given name, DOB)',
+        'Full onboarding process takes approximately 4–6 weeks to production',
+        'Free for 1–499 requests per quarter; tiered pricing above that',
+        'Multiple BC programs already use CRA data (SDPR, ECC, HLTH, FIN, BC Hydro, BC Housing)',
+      ],
     },
-    contacts: { primary: [], secondary: [] },
-    dataRequirements: [],
-    integrationOptions: [],
-    glossary: [],
+    contacts: {
+      primary: [
+        { name: 'Treana Clarke', title: 'Manager, Intergovernmental Relations — Income Tax Advisory (FIN)', email: 'Treana.Clarke@gov.bc.ca', phone: '778-698-1764' },
+      ],
+      secondary: [
+        { name: 'Isabelle Tremblay', title: 'Manager, Provincial & Territorial Partnerships (CRA)', email: 'Isabelle.Tremblay@cra-arc.gc.ca', phone: '(343) 542-4739' },
+        { name: 'Angela Lacoste', title: 'Senior Programs Officer, P&T Partnerships (CRA)', email: 'Angela.Lacoste@cra-arc.gc.ca', phone: '(873) 355-5688' },
+        { name: 'Samantha Clarke', title: 'Programs Officer, P&T Partnerships (CRA)', email: 'Samantha.Clarke2@cra-arc.gc.ca', phone: '(343) 575-6769' },
+        { name: 'Curtis Bell', title: 'Director, Provincial & Territorial Affairs; Account Executive ON/Western (CRA)', email: 'Curtis.Bell@cra-arc.gc.ca', phone: '(613) 852-2098' },
+        { name: 'Denis Rheaume', title: 'Assistant Director, Corporate Governance (CRA)', email: 'Denis.Rheaume@cra-arc.gc.ca', phone: '(613) 863-7508' },
+      ],
+    },
+    dataRequirements: [
+      {
+        id: 'request',
+        label: 'IVP Request (Record 0020)',
+        description: 'Client identification data sent by the province to request a match and income data.',
+        attributes: ['Social Insurance Number (SIN)', 'Legal Surname', 'Given Name', 'Date of Birth (YYYYMMDD)', 'Taxation Year(s) — up to 5 per record', 'Program Area Code'],
+        purpose: 'Initiate the income verification exchange with CRA. Must include SIN as primary identifier plus secondary matching fields.',
+      },
+      {
+        id: 'identification',
+        label: 'Identification Response (Record 0001)',
+        description: 'CRA returns client identification data — surname, given name, birth date, marital status.',
+        attributes: ['Surname', 'Given Name', 'Date of Birth', 'Marital Status Code'],
+        purpose: 'Verify the identity of the matched taxpayer and confirm demographic alignment.',
+      },
+      {
+        id: 'location',
+        label: 'Individual Location (Record 0002)',
+        description: 'Client mailing address as held by CRA.',
+        attributes: ['Street Address', 'City', 'Province Code', 'Postal Code'],
+        purpose: 'Obtain address information for residency verification signal. Reflects address at time of tax filing.',
+      },
+      {
+        id: 'income-data',
+        label: 'T1 Income Fields',
+        description: 'Income line items returned from the T1 General tax return, as defined in the MOU.',
+        attributes: [
+          'Line 101 — Employment income',
+          'Line 113 — Old age security pension',
+          'Line 114 — CPP/QPP benefits',
+          'Line 119 — Employment insurance and other benefits',
+          'Line 120 — Taxable amount of dividends',
+          'Line 121 — Interest and other investments income',
+          'Line 126 — Net rental income',
+          'Line 127 — Taxable capital gains',
+          'Line 129 — RRSP income',
+          'Line 130 — Other income',
+          'Line 135 — Net business income',
+          'Line 144 — Workers compensation benefits',
+          'Line 145 — Social assistance payments',
+          'Line 146 — Net federal supplements',
+          'Line 150 — Total income (Gross income)',
+        ],
+        purpose: 'Determine whether applicant income falls within program eligibility thresholds. Covers earned income (employment, self-employment, rental) and unearned income (pensions, EI, dividends, capital gains).',
+      },
+      {
+        id: 'response',
+        label: 'CRA Response (Record 0022)',
+        description: 'Matching results returned by CRA including match status and SIN status codes.',
+        attributes: ['Match Status Code', 'SIN Status', 'Surname Match Status', 'Given Name Match Status', 'DOB Match Status', 'RAP Count'],
+        purpose: 'Confirm whether the submitted record matched a CRA taxpayer, and the quality of the match across fields.',
+      },
+    ],
+    integrationOptions: [
+      {
+        id: 1,
+        label: 'SFTP Batch Exchange (Current)',
+        summary: 'Encrypted batch files exchanged via SFTP using Entrust PKI. Overnight processing with next-day results.',
+        meetsRequirements: 'Full',
+        cost: 'Low',
+        feasibility: 'High',
+        recommended: true,
+        description: 'Established exchange pattern used by SDPR and multiple BC programs. MOU-governed. Files sent via encrypted SFTP to CRA, processed on IV mainframe (available 21 hrs/day), responses returned typically within hours (SLA: 24–48 hrs). No plans from CRA to replace SFTP with real-time API.',
+        risks: [
+          'Batch processing — results not available same day for current SDPR workflow',
+          'Cannot verify income at point of application',
+          'Manual consent verification step required',
+          'Tax year data may be up to 16 months old',
+        ],
+      },
+    ],
+    incomeCodes: [
+      { code: '101', description: 'Employment income', inMOU: true },
+      { code: '104', description: 'Other employment income', inMOU: true },
+      { code: '113', description: 'Old age security pension', inMOU: true },
+      { code: '114', description: 'CPP/QPP benefits', inMOU: true },
+      { code: '115', description: 'Other pensions or superannuation', inMOU: true },
+      { code: '119', description: 'Employment insurance and other benefits', inMOU: true },
+      { code: '120', description: 'Taxable amount of dividends', inMOU: true },
+      { code: '121', description: 'Interest and other investments income', inMOU: true },
+      { code: '122', description: 'Net partnership income', inMOU: true },
+      { code: '160', description: 'Gross rental income', inMOU: true },
+      { code: '126', description: 'Net rental income', inMOU: true },
+      { code: '127', description: 'Taxable capital gains', inMOU: true },
+      { code: '156', description: 'Gross support payments received', inMOU: true },
+      { code: '129', description: 'RRSP income', inMOU: true },
+      { code: '130', description: 'Other income', inMOU: true },
+      { code: '162', description: 'Gross business income', inMOU: true },
+      { code: '135', description: 'Net business income', inMOU: true },
+      { code: '164', description: 'Gross professional income', inMOU: true },
+      { code: '137', description: 'Net professional income', inMOU: true },
+      { code: '166', description: 'Gross commission income', inMOU: true },
+      { code: '139', description: 'Net commission income', inMOU: true },
+      { code: '168', description: 'Gross farming income', inMOU: true },
+      { code: '141', description: 'Net farming income', inMOU: true },
+      { code: '170', description: 'Gross fishing income', inMOU: true },
+      { code: '143', description: 'Net fishing income', inMOU: true },
+      { code: '144', description: 'Workers compensation benefits', inMOU: true },
+      { code: '145', description: 'Social assistance payments', inMOU: true },
+      { code: '146', description: 'Net federal supplements', inMOU: true },
+      { code: '150', description: 'Total income (Gross income)', inMOU: true },
+      { code: '208', description: 'RRSP deduction / contributions', inMOU: true },
+      { code: '303', description: 'Spouse or common-law partner amount', inMOU: true },
+      { code: '305', description: 'Amount for eligible dependent', inMOU: true },
+      { code: '326', description: 'Amount transferred from spouse/common-law partner', inMOU: true },
+      { code: '484', description: 'Refund amount', inMOU: true },
+      { code: '116', description: 'Elected Split-Pension Amount', inMOU: false },
+      { code: '117', description: 'Universal Child Care Benefit (MCFD & CRA MOU)', inMOU: false },
+      { code: '125', description: 'RDSP Amount', inMOU: false },
+      { code: '128', description: 'Support Payments Received', inMOU: false },
+      { code: '185', description: 'UCCB Amount designated to a Dependent', inMOU: false },
+      { code: '213', description: 'UCCB Repayment Amount', inMOU: false },
+      { code: '453', description: 'WITB Amount Calculated', inMOU: false },
+      { code: '479', description: 'PROV-TAX-CR', inMOU: false },
+      { code: '23600', description: 'Net income (widely used — may be needed)', inMOU: false },
+    ],
+    recordTypes: [
+      { code: '0020', label: 'IVP Request', direction: 'P/T → CRA', description: 'Client identification data sent by the province to request a match and income data. Can request up to 5 tax years per record.' },
+      { code: '0001', label: 'Identification', direction: 'CRA → P/T', description: 'Describes the Income Verification client — surname, given name, birth date, marital status.' },
+      { code: '0002', label: 'Individual Location', direction: 'CRA → P/T', description: 'Client mailing address: street, city, province code, postal code.' },
+      { code: '0011', label: 'Account Change', direction: 'CRA → P/T', description: 'Generated when CRA updates a client active SIN or TTN to a new number.' },
+      { code: '0022', label: 'CRA Response', direction: 'CRA → P/T', description: 'Matching results: match status, SIN status, surname/name/DOB status codes, RAP count.' },
+      { code: '0023', label: 'No Data Response', direction: 'CRA → P/T', description: 'Generated when no T1 assessment is available for the requested tax year.' },
+    ],
+    costTiers: [
+      { range: '1 – 499', cost: 'No charge' },
+      { range: '500 – 79,999', cost: '$1,000 / quarter' },
+      { range: '80,000 – 500,000', cost: '$2,500 / quarter' },
+      { range: 'Over 500,000', cost: '$5,000 / quarter' },
+    ],
+    matchingCriteria: {
+      primary: 'SIN / TTN (must match + pass Mod-10 check)',
+      secondary: ['Surname (first 5 characters)', 'Given Name (first 5 characters)', 'Date of Birth (with tolerance for transposition)'],
+      note: 'CRA compares first 5 characters of surname/given name against any 5 consecutive characters in the P/T full name field. Birthdate: day/month transposition, year within ±5, and other partial matches are accepted.',
+    },
+    processSteps: [
+      { step: 1, title: 'Verify client consent', description: 'Ensure the applicant has authorized CRA to release their taxpayer information.' },
+      { step: 2, title: 'Verify accessible tax years', description: 'Identify which taxation years may be accessed under the MOU.' },
+      { step: 3, title: 'Create tax request in ICM', description: 'Generate the income verification request in ICM. Report runs overnight and is available the next business day.' },
+      { step: 4, title: 'Review reports', description: 'Review identification data, match status codes, and T1 income fields returned by CRA.' },
+      { step: 5, title: 'Validate', description: 'Confirm person data, marital status, and address match. Review income lines for inconsistencies. Follow up with client on any discrepancies.' },
+    ],
+    validationSteps: [
+      'Ensure person data, marital status, and address are correct/matched.',
+      'Determine residency and jurisdiction for any earned income.',
+      'Review income lines — identify inconsistencies and eligibility-impacting incomes.',
+      'For tax credits, confirm relationship status, dependents, or home ownership status.',
+      'If issues are identified, follow up with client to address discrepancies or provide documents.',
+    ],
+    painPoints: [
+      'Overnight batch — results not available same day',
+      'Manual consent verification step',
+      'Manual matching and review',
+      'No real-time verification capability',
+      'ICM request creation is manual',
+      'Cannot verify income at point of application',
+    ],
+    glossary: [
+      { term: 'CRA', definition: 'Canada Revenue Agency' },
+      { term: 'ICM', definition: 'Integrated Case Management' },
+      { term: 'IVP', definition: 'Income Verification Program' },
+      { term: 'MOU', definition: 'Memorandum of Understanding' },
+      { term: 'PKI', definition: 'Public Key Infrastructure' },
+      { term: 'SFTP', definition: 'Secure File Transfer Protocol' },
+      { term: 'SIN', definition: 'Social Insurance Number' },
+      { term: 'T1', definition: 'Individual Income Tax Return' },
+      { term: 'TTN', definition: 'Temporary Taxation Number' },
+      { term: 'CAW', definition: 'Certificate Agent for Windows (CRA-provided Entrust software)' },
+      { term: 'PIA', definition: 'Privacy Impact Assessment' },
+      { term: 'SDPR', definition: 'Ministry of Social Development and Poverty Reduction' },
+      { term: 'DA', definition: 'Disability Assistance' },
+      { term: 'IA', definition: 'Income Assistance' },
+      { term: 'P/T', definition: 'Province / Territory' },
+    ],
   },
   {
     id: 'icbc',
@@ -315,6 +538,8 @@ const DataSourceExplorer: React.FC = () => {
   const [selectedSourceId, setSelectedSourceId] = useState<string>('ltsa');
   const [activeSection, setActiveSection] = useState<SectionId>('overview');
   const [expandedShapes, setExpandedShapes] = useState<Set<string>>(new Set());
+  const [incomeFilter, setIncomeFilter] = useState<'all' | 'mou' | 'not'>('all');
+  const [expandedRecord, setExpandedRecord] = useState<string | null>(null);
 
   const selectedSource = dataSourceProfiles.find(s => s.id === selectedSourceId)!;
 
@@ -558,6 +783,239 @@ const DataSourceExplorer: React.FC = () => {
     </div>
   );
 
+  const renderIncomeData = () => {
+    if (!selectedSource.incomeCodes) return <p className="dse-empty">No income data for this source.</p>;
+    const codes = incomeFilter === 'mou'
+      ? selectedSource.incomeCodes.filter(c => c.inMOU)
+      : incomeFilter === 'not'
+        ? selectedSource.incomeCodes.filter(c => !c.inMOU)
+        : selectedSource.incomeCodes;
+    return (
+      <div className="dse-section">
+        <h3>Personal Income Definition</h3>
+        <div className="dse-income-categories">
+          <div className="income-category earned">
+            <h5>Earned Income</h5>
+            <p>Employment, self-employment, rental, commission, farming, fishing, etc.</p>
+          </div>
+          <div className="income-category unearned">
+            <h5>Unearned Income</h5>
+            <p>Pensions, CPP/OAS, EI, dividends, capital gains, RRSP, support payments, etc.</p>
+          </div>
+          <div className="income-category excluded">
+            <h5>Not Considered Income</h5>
+            <p>Certain exempted funds as defined by SDPR policy — not captured from CRA.</p>
+          </div>
+        </div>
+
+        <h3>Income Codes</h3>
+        <div className="dse-filter-bar">
+          <span className="filter-label">Show:</span>
+          {[
+            { id: 'all' as const, label: 'All Codes' },
+            { id: 'mou' as const, label: 'In MOU' },
+            { id: 'not' as const, label: 'Not in MOU' },
+          ].map(f => (
+            <button
+              key={f.id}
+              className={`filter-btn ${incomeFilter === f.id ? 'active' : ''}`}
+              onClick={() => setIncomeFilter(f.id)}
+            >
+              {f.label}
+            </button>
+          ))}
+          <span className="filter-count">{codes.length} codes</span>
+        </div>
+
+        <div className="dse-table-wrapper">
+          <table className="dse-table">
+            <thead>
+              <tr>
+                <th style={{ width: 80 }}>Code</th>
+                <th>Description</th>
+                <th style={{ width: 100 }}>In MOU</th>
+              </tr>
+            </thead>
+            <tbody>
+              {codes.map((item, i) => (
+                <tr key={`${item.code}-${i}`} className={i % 2 === 0 ? 'row-alt' : ''}>
+                  <td className={`code-cell ${item.inMOU ? 'in-mou' : 'not-mou'}`}>{item.code}</td>
+                  <td>{item.description}</td>
+                  <td>
+                    <span className={`badge ${item.inMOU ? 'badge-success' : 'badge-warning'}`}>
+                      {item.inMOU ? 'Yes' : 'No'}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <Callout variant="lightGold">
+          Note: Line 23600 (Net Income) is widely used and may be needed but is currently not in the existing MOU. This should be assessed for inclusion.
+        </Callout>
+      </div>
+    );
+  };
+
+  const renderTechnical = () => {
+    if (!selectedSource.recordTypes) return <p className="dse-empty">No technical details for this source.</p>;
+    return (
+      <div className="dse-section">
+        <h3>Exchange Overview</h3>
+        <p className="dse-text">
+          Data is exchanged via Secure File Transfer Protocol (SFTP) with Entrust PKI encryption.
+          There are no plans from CRA to replace SFTP with a real-time API.
+        </p>
+
+        <div className="dse-info-grid">
+          <div className="dse-info-card">
+            <h5>SFTP Servers</h5>
+            <div className="server-entry">
+              <span className="badge badge-success">PRODUCTION</span>
+              <code>sftp-prod.cra-arc.gc.ca</code>
+            </div>
+            <div className="server-entry">
+              <span className="badge badge-warning">TESTING</span>
+              <code>sftp-test.cra-arc.gc.ca</code>
+            </div>
+          </div>
+          <div className="dse-info-card">
+            <h5>System Availability</h5>
+            <ul className="dse-compact-list">
+              <li><strong>SFTP:</strong> 24/7 (issues outside 7am–5pm EST resolved next day)</li>
+              <li><strong>IV Mainframe:</strong> 7 days/week, 21 hrs/day (maintenance 3–6am)</li>
+              <li><strong>Response time:</strong> Typically within hours; SLA 24–48 hrs</li>
+            </ul>
+          </div>
+        </div>
+
+        <h3>Transaction Record Types</h3>
+        <div className="dse-record-types">
+          {selectedSource.recordTypes.map(rec => (
+            <div key={rec.code} className="record-type-card">
+              <button
+                className="record-type-header"
+                onClick={() => setExpandedRecord(expandedRecord === rec.code ? null : rec.code)}
+              >
+                <code className="record-code">{rec.code}</code>
+                <span className="record-label">{rec.label}</span>
+                <span className={`badge ${rec.direction.includes('→') ? 'badge-info' : 'badge-success'}`}>
+                  {rec.direction}
+                </span>
+                <span className="record-toggle">{expandedRecord === rec.code ? '▲' : '▼'}</span>
+              </button>
+              {expandedRecord === rec.code && (
+                <div className="record-type-body">
+                  <p>{rec.description}</p>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {selectedSource.matchingCriteria && (
+          <>
+            <h3>Matching Criteria</h3>
+            <div className="dse-matching">
+              <div className="matching-block primary">
+                <div className="matching-label">PRIMARY</div>
+                <div className="matching-value">{selectedSource.matchingCriteria.primary}</div>
+              </div>
+              <div className="matching-plus">+</div>
+              <div className="matching-block secondary">
+                <div className="matching-label">SECONDARY — 2 of 3</div>
+                <div className="matching-fields">
+                  {selectedSource.matchingCriteria.secondary.map((f, i) => (
+                    <span key={i} className="matching-field">{f}</span>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <p className="dse-note">{selectedSource.matchingCriteria.note}</p>
+          </>
+        )}
+
+        {selectedSource.costTiers && (
+          <>
+            <h3>Costing Structure</h3>
+            <div className="dse-table-wrapper">
+              <table className="dse-table">
+                <thead>
+                  <tr>
+                    <th>Requests per Quarter</th>
+                    <th>Cost</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {selectedSource.costTiers.map((tier, i) => (
+                    <tr key={i} className={i % 2 === 0 ? 'row-alt' : ''}>
+                      <td>{tier.range}</td>
+                      <td className={tier.cost === 'No charge' ? 'cost-free' : ''}><strong>{tier.cost}</strong></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <p className="dse-note">
+              A request is counted per individual per tax year. Requesting 3 tax years for one client = 3 requests.
+              Billed bi-annually (October Q1/Q2, February Q3/Q4).
+            </p>
+          </>
+        )}
+      </div>
+    );
+  };
+
+  const renderProcess = () => {
+    if (!selectedSource.processSteps) return <p className="dse-empty">No process information for this source.</p>;
+    return (
+      <div className="dse-section">
+        <h3>Current Third-Party Check Process</h3>
+        <div className="dse-process-steps">
+          {selectedSource.processSteps.map((item, i) => (
+            <div key={item.step} className="process-step-row">
+              <div className="step-indicator">
+                <div className="step-number">{item.step}</div>
+                {i < selectedSource.processSteps!.length - 1 && <div className="step-line" />}
+              </div>
+              <div className="step-content">
+                <h5>{item.title}</h5>
+                <p>{item.description}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {selectedSource.validationSteps && (
+          <>
+            <h3>Validation: What SDPR Looks For</h3>
+            <div className="dse-validation-steps">
+              {selectedSource.validationSteps.map((rule, i) => (
+                <div key={i} className="validation-step">
+                  <span className="validation-number">{i + 1}</span>
+                  <p>{rule}</p>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
+        {selectedSource.painPoints && (
+          <>
+            <h3>Pain Points (Current State)</h3>
+            <div className="dse-pain-points">
+              {selectedSource.painPoints.map((p, i) => (
+                <div key={i} className="pain-point">{p}</div>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+    );
+  };
+
   const renderActiveSection = () => {
     switch (activeSection) {
       case 'overview': return renderOverview();
@@ -565,6 +1023,9 @@ const DataSourceExplorer: React.FC = () => {
       case 'requirements': return renderRequirements();
       case 'options': return renderOptions();
       case 'glossary': return renderGlossary();
+      case 'income': return renderIncomeData();
+      case 'technical': return renderTechnical();
+      case 'process': return renderProcess();
     }
   };
 
@@ -615,7 +1076,10 @@ const DataSourceExplorer: React.FC = () => {
           </div>
 
           <nav className="dse-tabs">
-            {sections.map(section => (
+            {[
+              ...baseSections,
+              ...(selectedSource.extraTabs || []).map(t => extraTabDefs[t]).filter(Boolean),
+            ].map(section => (
               <button
                 key={section.id}
                 className={`dse-tab ${activeSection === section.id ? 'active' : ''}`}
