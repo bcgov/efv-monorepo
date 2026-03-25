@@ -39,7 +39,7 @@ const RulesEngineDashboard: React.FC = () => {
       version: '1.0',
       description: 'Identity must be verified before other eligibility factors can be assessed',
       dataSource: 'BC Services Card',
-      dataSourceIds: ['icbc'],
+      dataSourceIds: ['bcsc'],
       conditions: [
         {
           id: 'i1',
@@ -94,8 +94,8 @@ const RulesEngineDashboard: React.FC = () => {
       lastModified: '2026-02-12',
       version: '1.0',
       description: 'Confirms British Columbia residency through multi-source verification',
-      dataSource: 'Multiple sources (ICBC, MSP, BC Hydro, CRA)',
-      dataSourceIds: ['icbc', 'msp', 'bc-hydro', 'cra'],
+      dataSource: 'Multiple sources (ICBC, BCSC, BC Hydro, CRA)',
+      dataSourceIds: ['icbc', 'bcsc', 'bc-hydro', 'cra'],
       conditions: [
         {
           id: 'r1',
@@ -178,7 +178,13 @@ const RulesEngineDashboard: React.FC = () => {
                   className="view-source-link"
                   onClick={(e) => {
                     e.stopPropagation();
-                    navigate(`/data-sources`);
+                    const sourceMap: Record<string, string> = {
+                      'identity': 'bcsc',
+                      'income-verification': 'cra',
+                      'residency-check': 'ltsa',
+                    };
+                    const source = sourceMap[rule.id] || rule.dataSourceIds[0];
+                    navigate(`/data-sources?source=${source}`);
                   }}
                 >
                   View Source Profile →
@@ -243,9 +249,10 @@ const RulesEngineDashboard: React.FC = () => {
       </header>
 
       <Callout variant="lightGold">
-        This interface provides transparency into eligibility factors,
-        showing how determinations are made with clear logic, data sources, and version control.
-        Each factor is independently managed and testable.
+        <strong>Internal Tool for EFV Team Use Only.</strong> This interface is used by the Eligibility
+        Factored Verification team to manage and review eligibility factors. It provides transparency
+        into how determinations are made with clear logic, data sources, and version control. Each
+        factor is independently managed and testable.
       </Callout>
 
       <div className="view-content">
