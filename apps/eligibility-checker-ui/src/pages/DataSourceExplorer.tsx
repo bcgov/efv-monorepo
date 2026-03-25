@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Callout } from '@bcgov/design-system-react-components';
 import './DataSourceExplorer.css';
 
@@ -52,6 +53,41 @@ interface CostTier {
   cost: string;
 }
 
+interface AccessMethod {
+  id: string;
+  label: string;
+  tag: string;
+  tagVariant: 'success' | 'warning' | 'info';
+  flow: string[];
+  description: string;
+}
+
+interface KnownConstraint {
+  label: string;
+  detail: string;
+  severity: 'high' | 'medium' | 'info';
+}
+
+interface MatchingConsideration {
+  title: string;
+  description: string;
+}
+
+interface BackgroundItem {
+  title: string;
+  content: string;
+}
+
+interface OwnershipType {
+  type: string;
+  definition: string;
+}
+
+interface PlateStatus {
+  status: string;
+  description: string;
+}
+
 interface DataSourceProfile {
   id: string;
   name: string;
@@ -72,6 +108,7 @@ interface DataSourceProfile {
   integrationOptions: IntegrationOption[];
   glossary: GlossaryEntry[];
   extraTabs?: string[];
+  // CRA-specific
   incomeCodes?: IncomeCode[];
   recordTypes?: RecordType[];
   costTiers?: CostTier[];
@@ -79,9 +116,24 @@ interface DataSourceProfile {
   processSteps?: { step: number; title: string; description: string }[];
   validationSteps?: string[];
   painPoints?: string[];
+  // ICBC-specific
+  accessMethods?: AccessMethod[];
+  sdprCurrentState?: string;
+  knownConstraints?: KnownConstraint[];
+  matchingKeys?: { label: string; keys: string[] }[];
+  matchingConsiderations?: MatchingConsideration[];
+  comparisonTable?: { headers: string[]; rows: string[][] };
+  backgroundItems?: BackgroundItem[];
+  openQuestions?: string[];
+  businessRules?: string[];
+  ownershipTypes?: OwnershipType[];
+  plateStatuses?: PlateStatus[];
+  existingChannels?: { title: string; description: string; note?: string }[];
+  dataTypesSummary?: { label: string; who: string; needed: boolean }[];
+  scopeCards?: { title: string; description: string }[];
 }
 
-type SectionId = 'overview' | 'contacts' | 'requirements' | 'options' | 'glossary' | 'income' | 'technical' | 'process';
+type SectionId = 'overview' | 'contacts' | 'requirements' | 'options' | 'glossary' | 'income' | 'technical' | 'process' | 'matching' | 'background';
 
 const baseSections: { id: SectionId; label: string }[] = [
   { id: 'overview', label: 'Overview' },
@@ -95,6 +147,8 @@ const extraTabDefs: Record<string, { id: SectionId; label: string }> = {
   'income': { id: 'income', label: 'Income Data' },
   'technical': { id: 'technical', label: 'Technical' },
   'process': { id: 'process', label: 'SDPR Process' },
+  'matching': { id: 'matching', label: 'Matching' },
+  'background': { id: 'background', label: 'Background' },
 };
 
 const dataSourceProfiles: DataSourceProfile[] = [
@@ -487,24 +541,196 @@ const dataSourceProfiles: DataSourceProfile[] = [
     shortName: 'ICBC',
     description: 'Provincial Crown corporation providing universal auto insurance and driver licensing in British Columbia.',
     category: 'provincial',
-    relatedFactors: ['Identity Confirmation', 'BC Residency Verification'],
+    relatedFactors: ['Asset Verification (Vehicles)', 'BC Residency Verification'],
+    extraTabs: ['technical', 'matching', 'background'],
     overview: {
-      mandate: 'Content will be added soon.',
-      relevance: 'Content will be added soon.',
-      keyPoints: [],
+      mandate: 'ICBC is a Crown corporation that provides universal auto insurance, driver licensing, and vehicle registration in British Columbia. It maintains comprehensive records on vehicle ownership, registration status, and historical transfers.',
+      relevance: 'ICBC data assists SDPR in verifying vehicle asset eligibility conditions for Income Assistance and Disability Assistance applications. Two core conditions must be assessed: (1) the applicant\'s family unit does not hold non-exempt vehicle assets that exceed SDPR thresholds, and (2) the applicant has not transferred or sold vehicles at significantly less than fair market value within two years before applying for assistance.',
+      keyPoints: [
+        'Information is required for the applicant, spouse (if applicable), and any dependants',
+        'Current vehicle ownership — all vehicles registered to any member of the family unit',
+        'Former ownership (2-year lookback) — vehicles sold, transferred, or disposed of within two years prior to application',
+        'Vehicle value — current book value and/or value at time of transfer or sale',
+        'SDPR currently has no programmatic access to ICBC data — workers access the ICBC mainframe via terminal client',
+        'No data connectivity exists between ICM, MIS, or ICBC — all data entry is manual',
+        'ICBC API usage was contemplated in 2020 but set aside as low priority',
+        'ICBC has historically built custom APIs per organization — a centralized API may be a better path',
+      ],
     },
     contacts: { primary: [], secondary: [] },
-    dataRequirements: [],
+    dataRequirements: [
+      {
+        id: 'current',
+        label: 'Vehicle (Current Ownership)',
+        description: 'All vehicles currently registered to any member of the family unit.',
+        attributes: [
+          'Licence Plate Number',
+          'VIN (Vehicle Identification Number)',
+          'Registration Number',
+          'Vehicle Year',
+          'Make',
+          'Model',
+          'Ownership Type (PODL / ODL, sole / joint)',
+          'Registered Owner(s)',
+          'Ownership Percentage (if applicable)',
+          'Plate Status',
+          'Plate Type',
+          'Registration Details',
+          'Vehicle Value (if available)',
+        ],
+        purpose: 'Determine whether the family unit holds non-exempt vehicle assets. Identify current vehicle equity and ownership structure.',
+      },
+      {
+        id: 'former',
+        label: 'Vehicle (Former Ownership / Transfers)',
+        description: 'Vehicles sold, transferred, or disposed of within the two-year lookback period by any family unit member.',
+        attributes: [
+          'Licence Plate Number',
+          'VIN',
+          'Registration Number',
+          'Ownership prior to disposition',
+          'Date of transfer',
+          'Transferee / new owner',
+          'Transfer price',
+          'Sale price',
+          'Notes indicating disposal below fair market value (if available)',
+        ],
+        purpose: 'Identify asset transfers within the 2-year lookback. Detect potential dispositions at less than fair market value.',
+      },
+      {
+        id: 'value',
+        label: 'Vehicle Value',
+        description: 'Current book value and/or value at time of transfer or sale.',
+        attributes: [
+          'Current book value',
+          'Value at time of transfer/sale',
+          'Source of valuation (if available)',
+        ],
+        purpose: 'Assess whether vehicle assets exceed SDPR thresholds. Determine if a transfer was at significantly less than market value.',
+      },
+    ],
+    businessRules: [
+      'Vehicle ownership (current and historical) must be determined for every person in the family unit — applicant, spouse, and dependants.',
+      'Any vehicle transferred or sold within two years prior to application must be identified.',
+      'Transfers at less than fair market value must be flagged where data is available.',
+      'Vehicle value is required to assess whether assets exceed SDPR thresholds.',
+      'Ownership type (sole vs. joint) and ownership percentage must be captured.',
+      'Multiple registered owners must be recognized and evaluated.',
+    ],
     integrationOptions: [],
-    glossary: [],
+    accessMethods: [
+      {
+        id: 'legacy',
+        label: 'Legacy Path (Current)',
+        tag: 'LEGACY',
+        tagVariant: 'warning',
+        flow: ['Application', 'MoTT CCW API', 'BC Gov Mainframe', 'ICBC Mainframe'],
+        description: 'Existing legacy systems route through the MoTT CCW API and BC Gov mainframe to reach the ICBC mainframe. SDPR workers currently access the ICBC mainframe via the same terminal client used for MIS sessions — there is no data connectivity between ICM, MIS, or ICBC except by manual entry.',
+      },
+      {
+        id: 'new',
+        label: 'New Path (MoTT)',
+        tag: 'NEW',
+        tagVariant: 'success',
+        flow: ['Application', 'MoTT ICBCS API', 'ICBC Web API'],
+        description: 'A new ICBC Web API was built specifically for MoTT use. MoTT intends to migrate their CCW API to use this path. The API took ~4 years and several phases to build. ICBC would likely create a custom API per organization — there may be an opportunity for a centralized API.',
+      },
+    ],
+    sdprCurrentState: 'SDPR workers use the same terminal client they use for MIS sessions to connect to the ICBC mainframe. There is no data connectivity between ICM, MIS, or ICBC — all data entry is manual. ICBC API usage was contemplated in 2020 but set aside as low priority.',
+    existingChannels: [
+      { title: 'PSSG + MoTT — Mainframe ISA', description: 'ICBC already shares vehicle registration data with PSSG and MoTT for policing/enforcement purposes via mainframe-to-mainframe integration with traditional ISAs.', note: 'This channel may be leverageable for SDPR\'s needs.' },
+      { title: 'MoTT — ICBC Web API', description: 'A new ICBC Web API was built specifically for MoTT (~4 years, several phases). Used for Driver\'s Licence, Commercial Insurance, Contravention data. MoTT is migrating their CCW API to use this path.' },
+    ],
+    knownConstraints: [
+      { label: 'No existing SDPR–ICBC data connection', detail: 'SDPR workers access the ICBC mainframe via terminal client (same as MIS sessions). No programmatic link exists between ICM, MIS, and ICBC — all data entry is manual.', severity: 'high' },
+      { label: 'ICBC API usage deprioritized in 2020', detail: 'API integration was considered in 2020 but set aside as low priority. The new ICBC Web API was built for MoTT, not for SDPR use cases.', severity: 'medium' },
+      { label: 'Custom API per organization (historically)', detail: 'ICBC has built custom APIs for specific partners (e.g., MoTT\'s 4-year project). A centralized API is a potential opportunity but not yet confirmed.', severity: 'medium' },
+      { label: 'Existing mainframe-to-mainframe ISAs', detail: 'ICBC already shares vehicle registration data with PSSG and MoTT for policing/enforcement via mainframe-to-mainframe with traditional ISAs. This existing channel may be leveraged.', severity: 'info' },
+    ],
+    dataTypesSummary: [
+      { label: 'Driver\'s Licence', who: 'MoTT (current)', needed: false },
+      { label: 'Commercial Insurance', who: 'MoTT (current)', needed: false },
+      { label: 'Contravention Information', who: 'MoTT (current)', needed: false },
+      { label: 'Vehicle Registration', who: 'PSSG, MoTT (ISA)', needed: false },
+      { label: 'NSC Score (SFTP sync)', who: 'MoTT (SFTP/FTPS)', needed: false },
+      { label: 'Vehicle Ownership + History', who: 'SDPR (needed)', needed: true },
+      { label: 'Vehicle Value / Book Value', who: 'SDPR (needed)', needed: true },
+      { label: 'Transfer Records (2-yr lookback)', who: 'SDPR (needed)', needed: true },
+    ],
+    matchingKeys: [
+      { label: 'Primary Keys', keys: ['Driver Licence Number', 'Licence Plate', 'VIN (Vehicle Identification Number)', 'Registration Number'] },
+      { label: 'Secondary / Fallback Keys', keys: ['Last name + first name (or partial first name)', 'Date of birth — to resolve name variants', 'Address', 'Fuzzy matching required for name variations'] },
+    ],
+    matchingConsiderations: [
+      { title: 'Name variation risk', description: 'Match quality may be affected by name variations between the assistance application and vehicle registration records. Fuzzy matching logic will be needed.' },
+      { title: 'DOB improves confidence', description: 'Additional identifiers such as date of birth and address could improve match confidence when primary vehicle identifiers are not available.' },
+      { title: 'Multiple registered owners', description: 'A vehicle may have multiple registered owners. All ownership relationships must be evaluated across the full family unit.' },
+      { title: 'Two-year lookback requirement', description: 'Historical ownership data is required. The matching logic must handle both current and former ownership records for the same individual.' },
+    ],
+    comparisonTable: {
+      headers: ['Aspect', 'LTSA (Property)', 'ICBC (Vehicle)'],
+      rows: [
+        ['Primary key', 'PID / Title Number', 'Driver Licence / Plate / VIN'],
+        ['Name search available?', 'Yes (fuzzy needed)', 'Yes (fuzzy needed)'],
+        ['DOB available in source?', 'No', 'Likely yes (via DL)'],
+        ['Historical data?', 'Yes (historical name search)', 'TBC — 2-yr lookback needed'],
+        ['Current API access?', 'Title Direct Search API', 'Web API (MoTT only)'],
+        ['SDPR access today?', 'Manual via myLTSA', 'Manual via terminal/MIS'],
+      ],
+    },
+    backgroundItems: [
+      { title: 'Address Change BC (ACBC)', content: 'CITZ operates ACBC — a legacy application that lets people submit address changes. CITZ propagates updates to ICBC and Health. CITZ plans to modernize this app. Notes on data flow are documented from the Musqueamview street place name change experience.' },
+      { title: 'Existing vehicle registration sharing (PSSG + MoTT)', content: 'ICBC already shares vehicle registration data with government (PSSG, MoTT) for policing and enforcement purposes via mainframe-to-mainframe integration using traditional ISAs. There may be an opportunity to leverage this existing channel for SDPR needs.' },
+      { title: 'SDPR terminal access (no data link)', content: 'SDPR workers connect to the ICBC mainframe using the same terminal client as MIS sessions. There is no data connectivity between ICM, MIS, or ICBC — all data entry is manual. ICBC API usage was contemplated in 2020 but deprioritized.' },
+      { title: 'MoTT\'s API experience (4 years)', content: 'ICBC wrote a new web API for MoTT\'s use case. It took approximately 4 years across several phases. This suggests a new ICBC API for SDPR would require significant lead time. A centralized API may be a better path than per-organization custom builds.' },
+    ],
+    openQuestions: [
+      'Can the existing PSSG/MoTT mainframe ISA be extended or leveraged for SDPR use?',
+      'Will ICBC build a centralized API or require a separate custom API for SDPR?',
+      'Is historical vehicle ownership / transfer data available and searchable by person?',
+      'Is vehicle value / book value accessible via ICBC systems?',
+      'What ISA or MOU would be required for SDPR to access ICBC data programmatically?',
+      'What is the expected timeline for any new ICBC API integration?',
+    ],
+    ownershipTypes: [
+      { type: 'PODL', definition: 'Primary Owner Driver\'s Licence — the primary registered owner of the vehicle.' },
+      { type: 'ODL', definition: 'Owner Driver\'s Licence — additional or joint registered owner.' },
+      { type: 'Sole Ownership', definition: 'Vehicle is registered to one individual only.' },
+      { type: 'Joint Ownership', definition: 'Vehicle is registered to two or more individuals. Ownership percentage may apply.' },
+    ],
+    plateStatuses: [
+      { status: 'Active', description: 'Plate is currently registered and valid.' },
+      { status: 'Cancelled', description: 'Registration has been cancelled.' },
+      { status: 'Suspended', description: 'Registration is temporarily suspended.' },
+      { status: 'Expired', description: 'Registration period has lapsed.' },
+      { status: 'Transferred', description: 'Plate associated with a transferred vehicle.' },
+      { status: 'Seized', description: 'Plate/vehicle subject to legal seizure.' },
+    ],
+    glossary: [
+      { term: 'ICBC', definition: 'Insurance Corporation of British Columbia' },
+      { term: 'ACBC', definition: 'Address Change BC (CITZ-operated address change application)' },
+      { term: 'CCW API', definition: 'MoTT\'s legacy API routing through BC Gov mainframe to ICBC' },
+      { term: 'ICBCS API', definition: 'New MoTT API connecting directly to ICBC Web API' },
+      { term: 'ICM', definition: 'Integrated Case Management (SDPR system)' },
+      { term: 'MIS', definition: 'Ministry Information System (legacy SDPR terminal)' },
+      { term: 'MoTT', definition: 'Ministry of Transportation and Transit' },
+      { term: 'NSC', definition: 'National Safety Code (carrier score, synced monthly via SFTP)' },
+      { term: 'PODL', definition: 'Primary Owner Driver\'s Licence' },
+      { term: 'ODL', definition: 'Owner Driver\'s Licence' },
+      { term: 'PSSG', definition: 'Ministry of Public Safety and Solicitor General' },
+      { term: 'SDPR', definition: 'Ministry of Social Development and Poverty Reduction' },
+      { term: 'VIN', definition: 'Vehicle Identification Number' },
+      { term: 'ISA', definition: 'Information Sharing Agreement' },
+      { term: 'CITZ', definition: 'Ministry of Citizens\' Services' },
+    ],
   },
   {
-    id: 'msp',
-    name: 'Medical Services Plan',
-    shortName: 'MSP',
-    description: 'British Columbia\'s publicly funded health care coverage plan administered by Health Insurance BC.',
+    id: 'bcsc',
+    name: 'BC Services Card',
+    shortName: 'BCSC',
+    description: 'British Columbia\'s primary identity credential, providing secure digital authentication and identity verification for provincial services.',
     category: 'provincial',
-    relatedFactors: ['BC Residency Verification'],
+    relatedFactors: ['Identity Confirmation'],
     overview: {
       mandate: 'Content will be added soon.',
       relevance: 'Content will be added soon.',
@@ -535,7 +761,12 @@ const dataSourceProfiles: DataSourceProfile[] = [
 ];
 
 const DataSourceExplorer: React.FC = () => {
-  const [selectedSourceId, setSelectedSourceId] = useState<string>('ltsa');
+  const [searchParams] = useSearchParams();
+  const initialSource = searchParams.get('source') || 'ltsa';
+  const validSourceIds = dataSourceProfiles.map(s => s.id);
+  const [selectedSourceId, setSelectedSourceId] = useState<string>(
+    validSourceIds.includes(initialSource) ? initialSource : 'ltsa'
+  );
   const [activeSection, setActiveSection] = useState<SectionId>('overview');
   const [expandedShapes, setExpandedShapes] = useState<Set<string>>(new Set());
   const [incomeFilter, setIncomeFilter] = useState<'all' | 'mou' | 'not'>('all');
@@ -702,6 +933,23 @@ const DataSourceExplorer: React.FC = () => {
               </div>
             ))}
           </div>
+
+          {selectedSource.businessRules && selectedSource.businessRules.length > 0 && (
+            <>
+              <h3>Business Rules</h3>
+              <div className="dse-business-rules">
+                {selectedSource.businessRules.map((rule, i) => (
+                  <div key={i} className="business-rule">
+                    <span className="rule-number">{i + 1}</span>
+                    <p>{rule}</p>
+                  </div>
+                ))}
+              </div>
+              <Callout variant="lightBlue">
+                <strong>Note:</strong> Specific attributes and technical details are preliminary and will be confirmed during the requirements definition phase of the project.
+              </Callout>
+            </>
+          )}
         </>
       )}
     </div>
@@ -769,14 +1017,45 @@ const DataSourceExplorer: React.FC = () => {
   const renderGlossary = () => (
     <div className="dse-section">
       {selectedSource.glossary.length > 0 ? (
-        <div className="dse-glossary-list">
-          {selectedSource.glossary.map((entry, i) => (
-            <div key={i} className="dse-glossary-item">
-              <dt>{entry.term}</dt>
-              <dd>{entry.definition}</dd>
-            </div>
-          ))}
-        </div>
+        <>
+          <h3>Acronyms &amp; Terms</h3>
+          <div className="dse-glossary-list">
+            {selectedSource.glossary.map((entry, i) => (
+              <div key={i} className="dse-glossary-item">
+                <dt>{entry.term}</dt>
+                <dd>{entry.definition}</dd>
+              </div>
+            ))}
+          </div>
+
+          {selectedSource.ownershipTypes && selectedSource.ownershipTypes.length > 0 && (
+            <>
+              <h3>Vehicle Ownership Types</h3>
+              <div className="dse-ownership-types">
+                {selectedSource.ownershipTypes.map((item, i) => (
+                  <div key={i} className="ownership-type-card">
+                    <div className="ownership-type-label">{item.type}</div>
+                    <p>{item.definition}</p>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
+          {selectedSource.plateStatuses && selectedSource.plateStatuses.length > 0 && (
+            <>
+              <h3>Plate Status Values</h3>
+              <div className="dse-plate-statuses">
+                {selectedSource.plateStatuses.map((item, i) => (
+                  <div key={i} className="plate-status-card">
+                    <div className="plate-status-label">{item.status}</div>
+                    <p>{item.description}</p>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </>
       ) : (
         <p className="dse-empty">No glossary entries for this data source.</p>
       )}
@@ -860,6 +1139,81 @@ const DataSourceExplorer: React.FC = () => {
   };
 
   const renderTechnical = () => {
+    // ICBC-specific technical view
+    if (selectedSource.accessMethods) {
+      return (
+        <div className="dse-section">
+          <h3>How ICBC Data Is Currently Accessed</h3>
+          <p className="dse-text">
+            ICBC data is accessed in two ways depending on whether the calling system is legacy or new.
+            SDPR currently has no programmatic access.
+          </p>
+
+          <div className="dse-access-methods">
+            {selectedSource.accessMethods.map(method => (
+              <div key={method.id} className={`access-method-card border-${method.tagVariant}`}>
+                <div className="access-method-header">
+                  <span className={`badge badge-${method.tagVariant}`}>{method.tag}</span>
+                  <span className="access-method-label">{method.label}</span>
+                </div>
+                <div className="access-method-flow">
+                  {method.flow.map((step, i) => (
+                    <React.Fragment key={step}>
+                      <div className="flow-step">{step}</div>
+                      {i < method.flow.length - 1 && <span className="flow-arrow">→</span>}
+                    </React.Fragment>
+                  ))}
+                </div>
+                <p className="dse-text">{method.description}</p>
+              </div>
+            ))}
+          </div>
+
+          {selectedSource.sdprCurrentState && (
+            <>
+              <h3>SDPR Current State</h3>
+              <div className="dse-sdpr-state">
+                <div className="sdpr-state-header">⛔ No Programmatic Access</div>
+                <p>{selectedSource.sdprCurrentState}</p>
+              </div>
+            </>
+          )}
+
+          {selectedSource.existingChannels && selectedSource.existingChannels.length > 0 && (
+            <>
+              <h3>Existing Access Channels (Other Ministries)</h3>
+              <div className="dse-info-grid">
+                {selectedSource.existingChannels.map((ch, i) => (
+                  <div key={i} className="dse-info-card">
+                    <h5>{ch.title}</h5>
+                    <p className="dse-text">{ch.description}</p>
+                    {ch.note && <p className="dse-note" style={{ margin: 0, fontStyle: 'normal' }}>⚡ {ch.note}</p>}
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
+          {selectedSource.dataTypesSummary && selectedSource.dataTypesSummary.length > 0 && (
+            <>
+              <h3>Data Types Currently Shared by ICBC</h3>
+              <div className="dse-data-types-grid">
+                {selectedSource.dataTypesSummary.map((d, i) => (
+                  <div key={i} className={`data-type-card ${d.needed ? 'needed' : ''}`}>
+                    <div className="data-type-label">{d.label}</div>
+                    <span className={`badge ${d.needed ? 'badge-warning' : 'badge-secondary'}`}>
+                      {d.needed ? '⚠️ ' : ''}{d.who}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      );
+    }
+
+    // CRA-specific technical view
     if (!selectedSource.recordTypes) return <p className="dse-empty">No technical details for this source.</p>;
     return (
       <div className="dse-section">
@@ -1016,6 +1370,114 @@ const DataSourceExplorer: React.FC = () => {
     );
   };
 
+  const renderMatching = () => {
+    if (!selectedSource.matchingKeys) return <p className="dse-empty">No matching information for this source.</p>;
+    return (
+      <div className="dse-section">
+        <h3>Matching &amp; Identification Strategy</h3>
+        <p className="dse-text">
+          Because {selectedSource.shortName} records may not align perfectly with data provided in an assistance application,
+          the system must support multiple matching approaches.
+        </p>
+
+        <div className="dse-info-grid">
+          {selectedSource.matchingKeys.map((group, i) => (
+            <div key={i} className={`dse-info-card ${i === 0 ? 'border-top-success' : 'border-top-warning'}`}>
+              <h5>{group.label}</h5>
+              <ul className="dse-compact-list">
+                {group.keys.map((k, j) => (
+                  <li key={j}>{k}</li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+
+        {selectedSource.matchingConsiderations && selectedSource.matchingConsiderations.length > 0 && (
+          <>
+            <h3>Matching Considerations</h3>
+            <div className="dse-considerations">
+              {selectedSource.matchingConsiderations.map((item, i) => (
+                <div key={i} className="consideration-item">
+                  <div className="consideration-title">{item.title}</div>
+                  <p>{item.description}</p>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
+        {selectedSource.comparisonTable && (
+          <>
+            <h3>Comparison: LTSA vs ICBC Matching</h3>
+            <div className="dse-table-wrapper">
+              <table className="dse-table">
+                <thead>
+                  <tr>
+                    {selectedSource.comparisonTable.headers.map((h, i) => (
+                      <th key={i}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {selectedSource.comparisonTable.rows.map((row, i) => (
+                    <tr key={i} className={i % 2 === 0 ? 'row-alt' : ''}>
+                      {row.map((cell, j) => (
+                        <td key={j}>{j === 0 ? <strong>{cell}</strong> : cell}</td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
+      </div>
+    );
+  };
+
+  const renderBackground = () => {
+    if (!selectedSource.backgroundItems) return <p className="dse-empty">No background information for this source.</p>;
+    return (
+      <div className="dse-section">
+        <h3>What We Know</h3>
+        <div className="dse-background-items">
+          {selectedSource.backgroundItems.map((item, i) => (
+            <div key={i} className="background-item">
+              <div className="background-item-title">{item.title}</div>
+              <p>{item.content}</p>
+            </div>
+          ))}
+        </div>
+
+        {selectedSource.knownConstraints && selectedSource.knownConstraints.length > 0 && (
+          <>
+            <h3>Key Known Constraints</h3>
+            <div className="dse-constraints">
+              {selectedSource.knownConstraints.map((c, i) => (
+                <div key={i} className={`constraint-card severity-${c.severity}`}>
+                  <div className="constraint-label">{c.label}</div>
+                  <p>{c.detail}</p>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
+        {selectedSource.openQuestions && selectedSource.openQuestions.length > 0 && (
+          <>
+            <h3>Open Questions / TBD</h3>
+            <div className="dse-open-questions">
+              {selectedSource.openQuestions.map((q, i) => (
+                <div key={i} className="open-question">❓ {q}</div>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+    );
+  };
+
   const renderActiveSection = () => {
     switch (activeSection) {
       case 'overview': return renderOverview();
@@ -1026,6 +1488,8 @@ const DataSourceExplorer: React.FC = () => {
       case 'income': return renderIncomeData();
       case 'technical': return renderTechnical();
       case 'process': return renderProcess();
+      case 'matching': return renderMatching();
+      case 'background': return renderBackground();
     }
   };
 
@@ -1039,9 +1503,11 @@ const DataSourceExplorer: React.FC = () => {
       </header>
 
       <Callout variant="lightGold">
-        Each data source profile documents the authority, data requirements, integration options,
-        and contacts for systems used in eligibility factor verification. This supports transparent,
-        auditable connections between eligibility decisions and their underlying data.
+        <strong>Internal Tool for EFV Team Use Only.</strong> This explorer is used by the Eligibility
+        Factored Verification team to document and share authoritative data source profiles. Each
+        profile captures the authority, data requirements, integration options, and contacts for
+        systems used in eligibility factor verification — supporting transparent, auditable
+        connections between eligibility decisions and their underlying data.
       </Callout>
 
       <div className="dse-layout">
