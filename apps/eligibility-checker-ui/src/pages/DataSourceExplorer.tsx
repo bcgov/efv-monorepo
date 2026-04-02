@@ -28,6 +28,7 @@ interface IntegrationOption {
   recommended: boolean;
   description: string;
   risks: string[];
+  advantages?: string[];
 }
 
 interface GlossaryEntry {
@@ -131,6 +132,20 @@ interface DataSourceProfile {
   existingChannels?: { title: string; description: string; note?: string }[];
   dataTypesSummary?: { label: string; who: string; needed: boolean }[];
   scopeCards?: { title: string; description: string }[];
+  // BCSC-specific
+  purposeConditions?: { num: number; description: string }[];
+  iasSources?: { label: string; note: string }[];
+  scopeIn?: string[];
+  scopeOut?: string[];
+  policyAuthority?: { title: string; description: string };
+  attributeMap?: { sdpr: string; ias: string; note: string }[];
+  dataDictionary?: { term: string; definition: string }[];
+  attributePurposes?: { attr: string; icon: string; purpose: string }[];
+  bcscConstraints?: { label: string; detail: string; severity: 'high' | 'medium' | 'info' }[];
+  architectureFlows?: { from: string; to: string; detail: string }[];
+  bpsPatterns?: { title: string; items: string[] }[];
+  bpsNote?: string;
+  advantages?: string[];
 }
 
 type SectionId = 'overview' | 'contacts' | 'requirements' | 'options' | 'glossary' | 'income' | 'technical' | 'process' | 'matching' | 'background';
@@ -726,20 +741,205 @@ const dataSourceProfiles: DataSourceProfile[] = [
   },
   {
     id: 'bcsc',
-    name: 'BC Services Card',
+    name: 'Identity Assurance Services',
     shortName: 'BCSC',
-    description: 'British Columbia\'s primary identity credential, providing secure digital authentication and identity verification for provincial services.',
+    description: 'BC Services Card — verified identity for SDPR eligibility and cross-system matching, operated by CITZ Identity Assurance Services.',
     category: 'provincial',
-    relatedFactors: ['Identity Confirmation'],
+    relatedFactors: ['Identity Confirmation', 'Cross-System Matching'],
+    extraTabs: ['technical'],
     overview: {
-      mandate: 'Content will be added soon.',
-      relevance: 'Content will be added soon.',
-      keyPoints: [],
+      mandate: 'The BC Services Card (BCSC) is a digital equivalent of a driver licence used to prove identity for online government services. It is an integrated program between HLTH, ICBC, and CITZ. BCSC is the authoritative source of basic person information. Identity Assurance Services (IAS) is CITZ\'s foundational identity system — it integrates data from multiple trusted provincial systems including the ICBC Drivers System and the Health Client Registry through a continuous, automated process. IAS performs daily quality checks and resolves duplicate identity records.',
+      relevance: 'IAS / BC Services Card data assists SDPR with three purposes: (1) every adult in the family unit must verify their identity before their application can proceed, (2) verified identity attributes are used to match records across systems (LTSA, CRA, ICBC) during eligibility checks, and (3) basic person data supports the determination that the family unit\'s assets and income do not exceed eligibility thresholds.',
+      keyPoints: [
+        'BCSC is the authoritative source of basic person information (name, DOB, address, sex)',
+        'IAS integrates data from ICBC Drivers System (daily feed) and Health Client Registry',
+        'IAS performs daily quality checks and resolves duplicate identity records',
+        'Identity data is available at the time of login only — no standalone API pull exists',
+        'Identity attributes cannot be retrieved again if user is no longer present',
+        'IAS does not maintain relationship or spousal records',
+        'PHN is received from ICBC but cannot be shared — Health PCR is the authoritative source',
+        'Address data is sourced from ICBC feed — physical vs. mailing address distinction TBD',
+        'Policy authority: FOIPPA Section 69.2 — Provincial Identity Information Services Provider',
+      ],
     },
-    contacts: { primary: [], secondary: [] },
-    dataRequirements: [],
-    integrationOptions: [],
-    glossary: [],
+    purposeConditions: [
+      { num: 1, description: 'Every adult in the family unit must verify their identity before their application can proceed.' },
+      { num: 2, description: 'Verified identity attributes are used to match records across systems (LTSA, CRA, ICBC) during eligibility checks.' },
+      { num: 3, description: 'Basic person data supports the determination that the family unit\'s assets and income do not exceed eligibility thresholds.' },
+    ],
+    iasSources: [
+      { label: 'ICBC Drivers System', note: 'Daily feed — name, address, DOB, sex' },
+      { label: 'Health Client Registry', note: 'PHN linkage (not shareable via IAS)' },
+      { label: 'BC Services Card Program', note: 'Credential issuance and authentication' },
+    ],
+    scopeIn: [
+      'Basic person info for the Applicant',
+      'Basic person info for the Spouse',
+    ],
+    scopeOut: [
+      'Basic person info for Dependants',
+      'Personal Health Number (PHN)',
+      'Spousal / relationship linkages',
+    ],
+    policyAuthority: {
+      title: 'FOIPPA — Section 69.2 · Provincial Identity Information Services Provider',
+      description: 'Enables the Minister responsible to designate a Provincial Identity Information Services Provider (PIISP) and to issue directions regarding provision of credentials to citizens and the collection, use, and disclosure of personal identity information. Sets out the services a PIISP may provide.',
+    },
+    contacts: {
+      primary: [
+        { name: 'Pam Smith', title: 'A/Senior Executive Director, Cyber Security & Digital (Integrated Identity Service)', email: '—', phone: '—' },
+        { name: 'Olena Mitovska', title: 'A/Executive Director, Digital Trust — Data Custodian', email: '—', phone: '—' },
+        { name: 'Aaron Unger', title: 'Director, Product Development (Integrated Identity Service)', email: 'aaron.unger@gov.bc.ca', phone: '—' },
+        { name: 'Irish Israel', title: 'IAS Product Owner', email: '—', phone: '—' },
+        { name: 'Marcos A Carretero', title: 'Contractor', email: '—', phone: '—' },
+      ],
+      secondary: [],
+    },
+    dataRequirements: [
+      {
+        id: 'person-identity',
+        label: 'Person Identity (IAS Attributes)',
+        description: 'Core identity attributes available from IAS that map to SDPR application fields.',
+        attributes: [
+          'Surname (Primary Documented Surname from BCSC)',
+          'Given Name (Primary Documented Given Name — first name only)',
+          'Given Name(s) (All names other than surname — includes first + middle)',
+          'Birth Date (Documented birth date from BCSC)',
+          'Sex (Documented sex from BCSC — note: SDPR uses Gender)',
+          'Verified Email (Email verified with delivery once)',
+        ],
+        purpose: 'Verify the identity of applicants and spouses. Provide verified attributes for cross-system matching against LTSA, CRA, and ICBC records.',
+      },
+      {
+        id: 'address',
+        label: 'Address (via ICBC Feed)',
+        description: 'Residential address information sourced from ICBC daily feed into IAS.',
+        attributes: [
+          'Street Address (physical vs. mailing TBD)',
+          'Locality (city/municipality)',
+          'Province (two-letter code)',
+          'Postal Code',
+          'Country (two-letter code — not in SDPR application form)',
+        ],
+        purpose: 'Used to match records and verify residency across systems. Address type (physical vs. mailing) from ICBC feed needs confirmation.',
+      },
+    ],
+    attributeMap: [
+      { sdpr: 'Last name', ias: 'Surname', note: '' },
+      { sdpr: 'First name', ias: 'Given Name', note: 'Returns first name only; may not include all portions.' },
+      { sdpr: 'Middle name(s)', ias: 'Given Name(s)', note: 'Given Name(s) includes first + middle name in one field — semantics TBD.' },
+      { sdpr: 'Date of Birth', ias: 'Birth Date', note: '' },
+      { sdpr: 'Gender', ias: 'Sex', note: 'Gender and Sex may have different meanings and values — to be reviewed.' },
+      { sdpr: 'Email', ias: 'Verified Email', note: 'Verified with email delivery once (personal or business).' },
+      { sdpr: 'Street address — Unit number', ias: '—', note: 'Not explicitly mapped; may be within Street Address.' },
+      { sdpr: 'Street address — Line 1', ias: 'Street Address', note: 'Source: ICBC feed. Physical vs. mailing address unclear — to be confirmed.' },
+      { sdpr: 'Street address — Line 2', ias: 'Street Address', note: 'Source: ICBC feed.' },
+      { sdpr: 'City', ias: 'Locality', note: '' },
+      { sdpr: 'Province', ias: 'Province', note: 'Two-letter province code.' },
+      { sdpr: 'Postal code', ias: 'Postal Code', note: '' },
+      { sdpr: '—', ias: 'Country', note: 'Two-letter country code. Not in SDPR application form.' },
+    ],
+    dataDictionary: [
+      { term: 'Surname', definition: 'Primary Documented Surname from the BCSC. The individual\'s documented surname recorded from valid identification.' },
+      { term: 'Given Name', definition: 'Primary Documented Given Name from the BCSC. Returns first name only — may not include all portions of the first name.' },
+      { term: 'Given Name(s)', definition: 'All of the names an individual has other than their surname. Includes first and middle names in one field.' },
+      { term: 'Birth Date', definition: 'The individual\'s documented birth date recorded from valid identification (from BCSC).' },
+      { term: 'Sex', definition: 'The individual\'s documented sex recorded from valid identification (from BCSC).' },
+      { term: 'Street Address', definition: 'The street address lines of an individual\'s provided residential address. Sourced from ICBC feed.' },
+      { term: 'Locality', definition: 'The city, municipality, or district of an individual\'s provided residential address.' },
+      { term: 'Province', definition: 'The two-letter province code of an individual\'s provided residential address.' },
+      { term: 'Postal Code', definition: 'The postal code of the individual\'s provided residential address.' },
+      { term: 'Country', definition: 'The two-letter country code of an individual\'s provided residential address.' },
+      { term: 'Verified Email', definition: 'The email address provided by an individual that has been verified with email delivery once (personal or business).' },
+    ],
+    attributePurposes: [
+      { attr: 'Middle name(s)', icon: '🔗', purpose: 'Used to improve matching across systems, particularly where name variations exist (e.g., "Greg F. Duncan" vs. "Gregory Duncan").' },
+      { attr: 'Birth Date + Sex', icon: '🎯', purpose: 'Demographic attributes used to disambiguate duplicate records that share the same first and last name.' },
+      { attr: 'Address fields', icon: '📍', purpose: 'Used to match records and verify residency. Sourced from ICBC via daily IAS feed — address type to be confirmed.' },
+      { attr: 'Verified Email', icon: '✉️', purpose: 'Supports communication during multi-step application processes (e.g., notifications, follow-ups).' },
+    ],
+    integrationOptions: [
+      {
+        id: 1,
+        label: 'Option 1: Collect at the Digital Gateway (login)',
+        summary: 'Collect verified identity information at the Single Digital Gateway (SDG) when the individual logs in using their BC Services Card.',
+        meetsRequirements: 'Partial',
+        cost: 'Low',
+        feasibility: 'High',
+        recommended: false,
+        description: 'Store and share the data through the application lifecycle. Leverages the existing BCSC login flow with no new API required.',
+        advantages: [
+          'Leverages existing BCSC login flow',
+          'No new API required',
+          'Consent is implicit at login',
+        ],
+        risks: [
+          'Applicant and Spouse must both have a BCSC',
+          'Long-running transactions (e.g., PWD) may require identity data to be stored separately from IAS',
+          'Architectural work needed to hold identity data across session',
+        ],
+      },
+      {
+        id: 2,
+        label: 'Option 2: Collect directly from IAS via API',
+        summary: 'Collect verified identity information directly from IAS via purpose-built APIs.',
+        meetsRequirements: 'Full',
+        cost: 'Medium',
+        feasibility: 'Low',
+        recommended: false,
+        description: 'Supports long-running service transactions where verified identity data is needed for third-party validation checks. Cleaner separation of consent and data retrieval.',
+        advantages: [
+          'Supports long transactions like PWD',
+          'Identity data available at validation checkpoints',
+          'Cleaner separation of consent and data retrieval',
+        ],
+        risks: [
+          'No existing API — would need to be built',
+          'CS + BCSC team currently exploring feasibility',
+          'Timeline uncertain',
+        ],
+      },
+    ],
+    bcscConstraints: [
+      { label: 'No standalone API pull', detail: 'There is no API to retrieve identity data outside of the active login session. IAS APIs are real-time and require the individual to be present and consenting.', severity: 'high' },
+      { label: 'No "look-up later" capability', detail: 'Identity attributes cannot be retrieved again during a long-running transaction if the user is no longer present. This is a significant constraint for multi-step processes like PWD.', severity: 'high' },
+      { label: 'No spousal linkage in IAS', detail: 'IAS does not maintain relationship or spousal records. Spouse identity cannot be retrieved from IAS unless the spouse is physically present and consents.', severity: 'medium' },
+      { label: 'Consent required', detail: 'Access to identity attributes depends on the consent model. CS is working with the BCSC team to define this and explore whether an API could be built.', severity: 'medium' },
+      { label: 'PHN not shareable via IAS', detail: 'IAS receives PHN in the feed from ICBC but cannot share it — Health Provincial Client Registry is the authoritative source. PHN is out of scope.', severity: 'info' },
+      { label: 'Address source ambiguity', detail: 'IAS receives address data from ICBC. It is unclear whether this represents a physical or mailing address. To be confirmed.', severity: 'info' },
+    ],
+    architectureFlows: [
+      { from: 'ICBC Drivers System', to: 'IAS', detail: 'Daily automated feed — name, address, DOB, sex. Quality checks and deduplication performed by IAS.' },
+      { from: 'Health Client Registry', to: 'IAS', detail: 'PHN linkage received but not shareable — Health is the authoritative source.' },
+      { from: 'IAS', to: 'Government Services', detail: 'Real-time identity attributes released at login, with consent. No batch or deferred retrieval.' },
+    ],
+    bpsPatterns: [
+      { title: 'Current BPS / Contracted Agency Pattern', items: ['Access patterns vary by sector', 'Typically org-to-org MOUs', 'Predicated on prior consent to collect', 'Info sharing commonly via exported CSV'] },
+      { title: 'What\'s Being Explored', items: ['CS team working with BCSC team on API feasibility', 'Consent model yet to be finalized', 'Architectural conversations underway on temporary identity data storage (EFV or another component)'] },
+    ],
+    bpsNote: 'A PIA document for BCSC confirms what data attributes are accessible. Architectural conversations are required to explore options for retrieving IAS data and/or temporarily holding limited identity data across a long-running transaction.',
+    openQuestions: [
+      'Can the BCSC team build an API to support deferred or batch identity retrieval?',
+      'What consent model is required — implicit at login, or explicit per data request?',
+      'How will spouse identity be collected if IAS has no spousal linkage and the spouse is not present?',
+      'Is temporary identity data storage in EFV (or similar) feasible and acceptable under PIA?',
+      'Does address from ICBC represent physical or mailing address?',
+      'How will Given Name(s) be split into first + middle for SDPR attribute mapping?',
+    ],
+    glossary: [
+      { term: 'API', definition: 'Application Programming Interface' },
+      { term: 'BCSC', definition: 'BC Services Card' },
+      { term: 'BPS', definition: 'Broader Public Sector' },
+      { term: 'CITZ', definition: 'Ministry of Citizens\' Services' },
+      { term: 'HLTH', definition: 'Ministry of Health' },
+      { term: 'IAS', definition: 'Identity Assurance Services' },
+      { term: 'ICBC', definition: 'Insurance Corporation of British Columbia' },
+      { term: 'PIA', definition: 'Privacy Impact Assessment' },
+      { term: 'PIISP', definition: 'Provincial Identity Information Services Provider' },
+      { term: 'PWD', definition: 'Persons With Disability' },
+      { term: 'SDG', definition: 'Single Digital Gateway' },
+      { term: 'SDPR', definition: 'Ministry of Social Development and Poverty Reduction' },
+    ],
   },
   {
     id: 'bc-hydro',
@@ -835,6 +1035,68 @@ const DataSourceExplorer: React.FC = () => {
               <span key={i} className="badge badge-primary">{factor}</span>
             ))}
           </div>
+
+          {selectedSource.purposeConditions && selectedSource.purposeConditions.length > 0 && (
+            <>
+              <h3>Why This Data Is Needed</h3>
+              <div className="bcsc-conditions">
+                {selectedSource.purposeConditions.map((cond) => (
+                  <div key={cond.num} className="bcsc-condition">
+                    <span className="condition-num">{cond.num}</span>
+                    <p>{cond.description}</p>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
+          {selectedSource.iasSources && selectedSource.iasSources.length > 0 && (
+            <>
+              <h3>IAS Data Sources</h3>
+              <div className="bcsc-ias-sources">
+                {selectedSource.iasSources.map((src, i) => (
+                  <div key={i} className="ias-source-card">
+                    <div className="ias-source-label">{src.label}</div>
+                    <div className="ias-source-note">{src.note}</div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
+          {selectedSource.scopeIn && selectedSource.scopeOut && (
+            <>
+              <h3>Scope</h3>
+              <div className="bcsc-scope-grid">
+                <div className="scope-card scope-in">
+                  <div className="scope-header">✅ In Scope</div>
+                  <ul>
+                    {selectedSource.scopeIn.map((item, i) => (
+                      <li key={i}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="scope-card scope-out">
+                  <div className="scope-header">❌ Out of Scope</div>
+                  <ul>
+                    {selectedSource.scopeOut.map((item, i) => (
+                      <li key={i}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </>
+          )}
+
+          {selectedSource.policyAuthority && (
+            <>
+              <h3>Policy Authority</h3>
+              <div className="bcsc-policy-authority">
+                <div className="policy-title">{selectedSource.policyAuthority.title}</div>
+                <p>{selectedSource.policyAuthority.description}</p>
+              </div>
+            </>
+          )}
         </>
       )}
     </div>
@@ -950,6 +1212,67 @@ const DataSourceExplorer: React.FC = () => {
               </Callout>
             </>
           )}
+
+          {selectedSource.attributeMap && selectedSource.attributeMap.length > 0 && (
+            <>
+              <h3>Attribute Mapping: SDPR Application → IAS</h3>
+              <p className="dse-subtitle">The table below maps the field names used in the SDPR application to the corresponding IAS / BC Services Card attribute names, including known semantic differences that require resolution.</p>
+              <div className="dse-table-wrapper">
+                <table className="dse-table bcsc-attr-table">
+                  <thead>
+                    <tr>
+                      <th>SDPR Application Field</th>
+                      <th>IAS / BCSC Attribute</th>
+                      <th>Notes / Semantic Issues</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {selectedSource.attributeMap.map((row, i) => (
+                      <tr key={i}>
+                        <td className="attr-sdpr">{row.sdpr}</td>
+                        <td className={`attr-ias ${row.ias === '—' ? 'attr-empty' : ''}`}>{row.ias}</td>
+                        <td>{row.note ? <span className="attr-note">⚠️ {row.note}</span> : <span className="attr-no-note">—</span>}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <Callout variant="lightGold">
+                <strong>Semantic issues to resolve:</strong> (1) Given Name(s) bundles first and middle name — SDPR needs them split. (2) Gender vs. Sex — different meanings and possible value sets. (3) Address type (physical vs. mailing) from ICBC feed — to be confirmed.
+              </Callout>
+            </>
+          )}
+
+          {selectedSource.attributePurposes && selectedSource.attributePurposes.length > 0 && (
+            <>
+              <h3>Purpose of Use for Each Attribute</h3>
+              <div className="bcsc-attr-purposes">
+                {selectedSource.attributePurposes.map((item, i) => (
+                  <div key={i} className="attr-purpose-card">
+                    <span className="attr-purpose-icon">{item.icon}</span>
+                    <div>
+                      <div className="attr-purpose-label">{item.attr}</div>
+                      <p>{item.purpose}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
+          {selectedSource.dataDictionary && selectedSource.dataDictionary.length > 0 && (
+            <>
+              <h3>Data Dictionary</h3>
+              <div className="bcsc-data-dictionary">
+                {selectedSource.dataDictionary.map((item, i) => (
+                  <div key={i} className="data-dict-item">
+                    <span className="data-dict-term">{item.term}</span>
+                    <p>{item.definition}</p>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
         </>
       )}
     </div>
@@ -996,9 +1319,20 @@ const DataSourceExplorer: React.FC = () => {
                   </div>
                 </div>
 
+                {option.advantages && option.advantages.length > 0 && (
+                  <div className="option-advantages">
+                    <h5>Advantages</h5>
+                    <ul>
+                      {option.advantages.map((adv, i) => (
+                        <li key={i}>{adv}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
                 {option.risks.length > 0 && (
                   <div className="option-risks">
-                    <h5>Risks</h5>
+                    <h5>Considerations / Risks</h5>
                     <ul>
                       {option.risks.map((risk, i) => (
                         <li key={i}>{risk}</li>
@@ -1009,6 +1343,23 @@ const DataSourceExplorer: React.FC = () => {
               </div>
             ))}
           </div>
+
+          {selectedSource.openQuestions && selectedSource.openQuestions.length > 0 && (
+            <>
+              <h3>Open Questions</h3>
+              <div className="bcsc-open-questions">
+                {selectedSource.openQuestions.map((q, i) => (
+                  <div key={i} className="open-question-item">❓ {q}</div>
+                ))}
+              </div>
+            </>
+          )}
+
+          {selectedSource.id === 'bcsc' && (
+            <Callout variant="lightGold">
+              <strong>Recommendation:</strong> TBD. Architectural conversations are ongoing. The recommendation will depend on consent model finalization, BCSC API feasibility assessment, and requirements for long-running transactions like PWD.
+            </Callout>
+          )}
         </>
       )}
     </div>
@@ -1208,6 +1559,69 @@ const DataSourceExplorer: React.FC = () => {
                 ))}
               </div>
             </>
+          )}
+        </div>
+      );
+    }
+
+    // BCSC-specific technical view
+    if (selectedSource.bcscConstraints) {
+      return (
+        <div className="dse-section">
+          <h3>Current Access Pattern</h3>
+          <p className="dse-text">
+            IAS identity data is available <strong>at the time of login only</strong>. There is no API
+            available to pull identity data independently of an active session.
+          </p>
+
+          <div className="bcsc-constraints">
+            {selectedSource.bcscConstraints.map((c, i) => (
+              <div key={i} className={`bcsc-constraint severity-${c.severity}`}>
+                <div className="constraint-label">{c.label}</div>
+                <p>{c.detail}</p>
+              </div>
+            ))}
+          </div>
+
+          {selectedSource.architectureFlows && selectedSource.architectureFlows.length > 0 && (
+            <>
+              <h3>IAS System Architecture (Summary)</h3>
+              <div className="bcsc-architecture">
+                {selectedSource.architectureFlows.map((flow, i) => (
+                  <div key={i} className="arch-flow-row">
+                    <div className="arch-flow-node">{flow.from}</div>
+                    <span className="arch-flow-arrow">→</span>
+                    <div className="arch-flow-node">{flow.to}</div>
+                    <span className="arch-flow-arrow">→</span>
+                    <div className="arch-flow-detail">{flow.detail}</div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
+          {selectedSource.bpsPatterns && selectedSource.bpsPatterns.length > 0 && (
+            <>
+              <h3>Broader Public Sector (BPS) Access Patterns</h3>
+              <div className="dse-info-grid">
+                {selectedSource.bpsPatterns.map((pattern, i) => (
+                  <div key={i} className="dse-info-card">
+                    <h5>{pattern.title}</h5>
+                    <ul className="bps-pattern-list">
+                      {pattern.items.map((item, j) => (
+                        <li key={j}>{item}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
+          {selectedSource.bpsNote && (
+            <Callout variant="lightBlue">
+              {selectedSource.bpsNote}
+            </Callout>
           )}
         </div>
       );
